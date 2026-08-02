@@ -86,6 +86,12 @@
   .tab-btn.active{background:linear-gradient(180deg, rgba(41,198,255,.24), rgba(41,198,255,.06));color:var(--blue);border-color:rgba(41,198,255,.55);box-shadow:0 0 16px rgba(41,198,255,.25) inset;}
 
   .panel-body{flex:1;display:flex;flex-direction:column;min-height:0;padding:0 14px 14px;}
+  .panel-scroll{flex:1;overflow-y:auto;min-height:0;
+    scrollbar-width:thin; scrollbar-color:rgba(41,198,255,.55) rgba(255,255,255,.04);}
+  .panel-scroll::-webkit-scrollbar{width:8px;}
+  .panel-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.03);border-radius:8px;margin:2px 0;}
+  .panel-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg, var(--blue), var(--teal));border-radius:8px;border:1px solid rgba(255,255,255,.08);box-shadow:0 0 8px rgba(41,198,255,.5);}
+  .panel-scroll::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg, #6fe0ff, var(--blue));box-shadow:0 0 12px rgba(41,198,255,.75);}
 
   .section-label{font-family:var(--font-hud);font-size:10px;letter-spacing:1.6px;color:var(--ink-dim);margin:4px 0 9px;text-transform:uppercase;}
 
@@ -104,13 +110,24 @@
   .block-der .ic{color:var(--teal-dim);}
   .block-repetir{background:linear-gradient(180deg,#7fdcff,var(--blue));box-shadow:0 4px 0 var(--blue-dim), 0 0 18px rgba(41,198,255,.4);color:#002335;}
   .block-repetir .ic{color:var(--blue-dim);}
-  .block-locked{background:linear-gradient(180deg, rgba(255,59,92,.28), rgba(154,22,48,.28));border:1px dashed rgba(255,59,92,.5);box-shadow:none;color:#ffd9e0;cursor:not-allowed;opacity:.7;}
-  .block-locked .ic-badge{background:rgba(255,255,255,.15);}
-  .block-locked .ic{color:#ff8ea0;}
-  .soon-tag{position:absolute;top:6px;right:10px;font-family:var(--font-hud);font-size:8.5px;letter-spacing:.5px;background:rgba(255,59,92,.35);color:#ffd9e0;padding:2px 6px;border-radius:6px;}
+  .block-locked{background:linear-gradient(180deg, rgba(120,140,160,.18), rgba(60,70,90,.18));border:1px dashed rgba(255,255,255,.2);box-shadow:none;color:#aebccb;cursor:not-allowed;opacity:.6;}
+  .block-locked .ic-badge{background:rgba(255,255,255,.12);}
+  .block-locked .ic{color:#aebccb;}
+  .block-conditional{background:linear-gradient(180deg,#ff7a92,var(--red));box-shadow:0 4px 0 var(--red-dim), 0 0 18px rgba(255,59,92,.45);color:#3a0010;opacity:1;cursor:pointer;}
+  .block-conditional .ic-badge{background:rgba(255,255,255,.92);}
+  .block-conditional .ic{color:var(--red-dim);}
+  .block-conditional:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.3);}
+  .soon-tag{position:absolute;top:6px;right:10px;font-family:var(--font-hud);font-size:8.5px;letter-spacing:.5px;background:rgba(255,255,255,.15);color:#dfe8f2;padding:2px 6px;border-radius:6px;}
+  .step-conditional{border-color:rgba(255,59,92,.5);background:rgba(255,59,92,.08);}
+  .step .cond-badge{font-family:var(--font-hud);font-size:10px;background:var(--red);color:#fff;padding:2px 6px;border-radius:6px;box-shadow:0 0 8px rgba(255,59,92,.6);}
 
-  .workspace-wrap{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:14px;}
-  .workspace{flex:1;overflow-y:auto;background:rgba(0,0,0,.28);border:1px dashed rgba(255,255,255,.14);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:110px;}
+  .workspace-wrap{margin-top:14px;}
+  .workspace{max-height:220px;overflow-y:auto;background:rgba(0,0,0,.28);border:1px dashed rgba(255,255,255,.14);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:90px;
+    scrollbar-width:thin; scrollbar-color:rgba(57,255,122,.5) rgba(255,255,255,.03);}
+  .workspace::-webkit-scrollbar{width:7px;}
+  .workspace::-webkit-scrollbar-track{background:rgba(255,255,255,.02);border-radius:8px;}
+  .workspace::-webkit-scrollbar-thumb{background:linear-gradient(180deg, var(--green), var(--teal));border-radius:8px;border:1px solid rgba(255,255,255,.08);box-shadow:0 0 8px rgba(57,255,122,.4);}
+  .workspace::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg, #6dffa3, var(--green));box-shadow:0 0 12px rgba(57,255,122,.65);}
   .workspace:empty::after{content:'Toca un bloque para empezar tu algoritmo ✨';display:block;color:var(--ink-dim);font-size:12.5px;text-align:center;padding:24px 10px;font-weight:600;}
   .step{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:13px;font-weight:700;}
   .step .idx{font-family:var(--font-hud);font-size:10px;color:var(--ink-dim);width:16px;}
@@ -146,6 +163,10 @@
   .board-deco{position:absolute;inset:0;z-index:1;pointer-events:none;}
   .goal-label{position:absolute;z-index:3;font-family:var(--font-hud);font-weight:800;font-size:13px;color:var(--gold);text-shadow:0 0 10px rgba(255,209,102,.8);letter-spacing:1px;pointer-events:none;opacity:0;transition:opacity .2s ease;}
   .feedback-toast{position:absolute;left:50%;top:16px;transform:translateX(-50%);padding:10px 18px;border-radius:14px;font-family:var(--font-body);font-weight:700;font-size:13.5px;opacity:0;transition:opacity .25s ease;pointer-events:none;z-index:6;text-align:center;max-width:80%;}
+  .zoom-controls{position:absolute;right:16px;bottom:16px;z-index:6;display:flex;flex-direction:column;gap:6px;}
+  .zoom-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:rgba(9,20,42,.75);backdrop-filter:blur(6px);color:var(--ink);font-family:var(--font-hud);font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  .zoom-btn:hover{background:rgba(41,198,255,.22);}
+  .zoom-btn.reset{font-size:13px;}
   .feedback-toast.show{opacity:1;}
   .toast-error{background:rgba(255,59,92,.2);border:1px solid var(--red);color:#ffdbe2;box-shadow:0 0 20px rgba(255,59,92,.35);}
   .toast-info{background:rgba(41,198,255,.18);border:1px solid var(--blue);color:#dff6ff;box-shadow:0 0 20px rgba(41,198,255,.3);}
@@ -267,27 +288,30 @@
             <button class="tab-btn" data-tab="mission">Misión</button>
           </div>
           <div class="panel-body">
-            <div id="tabCode">
-              <div class="section-label">Paleta de comandos</div>
-              <div class="palette">
-                <button class="block-btn block-avanzar" data-cmd="AVANZAR"><span class="ic-badge"><span class="ic">➜</span></span><span class="lbl">Avanzar</span></button>
-                <button class="block-btn block-izq" data-cmd="GIRAR_IZQ"><span class="ic-badge"><span class="ic">↺</span></span><span class="lbl">Girar Izquierda</span></button>
-                <button class="block-btn block-der" data-cmd="GIRAR_DER"><span class="ic-badge"><span class="ic">↻</span></span><span class="lbl">Girar Derecha</span></button>
-                <button class="block-btn block-repetir" data-cmd="REPETIR_2"><span class="ic-badge"><span class="ic">⟳</span></span><span class="lbl">Repetir (×2)</span></button>
-                <button class="block-btn block-locked" disabled title="Disponible en Fase 2"><span class="ic-badge"><span class="ic">🔒</span></span><span class="lbl">Si obstáculo…</span><span class="soon-tag">Fase 2</span></button>
+            <div class="panel-scroll">
+              <div id="tabCode">
+                <div class="section-label">Paleta de comandos</div>
+                <div class="palette">
+                  <button class="block-btn block-avanzar" data-cmd="AVANZAR"><span class="ic-badge"><span class="ic">➜</span></span><span class="lbl">Avanzar</span></button>
+                  <button class="block-btn block-izq" data-cmd="GIRAR_IZQ"><span class="ic-badge"><span class="ic">↺</span></span><span class="lbl">Girar Izquierda</span></button>
+                  <button class="block-btn block-der" data-cmd="GIRAR_DER"><span class="ic-badge"><span class="ic">↻</span></span><span class="lbl">Girar Derecha</span></button>
+                  <button class="block-btn block-repetir" data-cmd="REPETIR_2"><span class="ic-badge"><span class="ic">⟳</span></span><span class="lbl">Repetir (×2)</span></button>
+                  <button class="block-btn block-locked" data-cmd="SI_OBSTACULO" title="Si obstáculo enfrente → ejecuta el paso anterior"><span class="ic-badge"><span class="ic">❢</span></span><span class="lbl">Si obstáculo…</span><span class="soon-tag">Nivel 3+</span></button>
+                </div>
+                <div class="workspace-wrap">
+                  <div class="section-label" style="margin-top:14px;">Tu algoritmo</div>
+                  <div class="workspace" id="workspace"></div>
+                  <div class="block-count" id="blockCount">0 / 10 bloques</div>
+                </div>
               </div>
-              <div class="workspace-wrap">
-                <div class="section-label" style="margin-top:14px;">Tu algoritmo</div>
-                <div class="workspace" id="workspace"></div>
-                <div class="block-count" id="blockCount">0 / 10 bloques</div>
+              <div id="tabMission" style="display:none;">
+                <div class="section-label">Misión actual</div>
+                <div class="mission-box" id="missionText"></div>
+                <div class="mission-row"><span>Cristales requeridos</span><span id="missionCrystals">2</span></div>
+                <div class="mission-row"><span>Límite de bloques</span><span id="missionMaxBlocks">10</span></div>
+                <div class="mission-row"><span>Tablero</span><span id="missionGrid">6×6</span></div>
+                <div class="mission-row" style="border-bottom:none;"><span>Bloques disponibles</span><span id="missionBlocks">3</span></div>
               </div>
-            </div>
-            <div id="tabMission" style="display:none;">
-              <div class="section-label">Misión actual</div>
-              <div class="mission-box" id="missionText"></div>
-              <div class="mission-row"><span>Cristales requeridos</span><span id="missionCrystals">2</span></div>
-              <div class="mission-row"><span>Límite de bloques</span><span id="missionMaxBlocks">10</span></div>
-              <div class="mission-row" style="border-bottom:none;"><span>Tablero</span><span id="missionGrid">6×6</span></div>
             </div>
             <div class="controls-row">
               <button class="exec-btn" id="btnExec">▶ Ejecutar</button>
@@ -302,6 +326,11 @@
         <div class="board-wrap">
           <canvas id="board"></canvas>
           <div class="feedback-toast" id="toast"></div>
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomIn" title="Acercar">+</button>
+            <button class="zoom-btn" id="zoomOut" title="Alejar">−</button>
+            <button class="zoom-btn reset" id="zoomReset" title="Restablecer zoom">⤢</button>
+          </div>
 
           <!-- Victory modal -->
           <div class="modal-overlay" id="victoryModal">
@@ -369,6 +398,7 @@
   }
   function sfxStep(){ tone(420,0.09,'square',0.10); }
   function sfxTurn(){ tone(560,0.07,'triangle',0.10); }
+  function sfxSkip(){ tone(300,0.05,'sine',0.07); }
   function sfxCrystal(){ tone(880,0.10,'sine',0.16); tone(1320,0.14,'sine',0.13,0.07); }
   function sfxError(){ tone(160,0.28,'sawtooth',0.16); tone(110,0.3,'sawtooth',0.12,0.05); }
   function sfxVictory(){ [660,880,1100,1320].forEach(function(f,i){ tone(f,0.22,'triangle',0.15,i*0.11); }); }
@@ -386,6 +416,7 @@
       required_crystals:2,
       crystals:[{x:2,y:0},{x:4,y:3}],
       obstacles:[{x:2,y:1,type:'volcano'},{x:2,y:2,type:'volcano'},{x:3,y:4,type:'vortex'}],
+      allowed_blocks:["AVANZAR","GIRAR_IZQ","GIRAR_DER","REPETIR_2"],
       max_blocks:10
     },
     {
@@ -399,7 +430,50 @@
       required_crystals:3,
       crystals:[{x:1,y:3},{x:3,y:3},{x:4,y:1}],
       obstacles:[{x:1,y:4,type:'volcano'},{x:1,y:1,type:'volcano'},{x:4,y:3,type:'vortex'},{x:2,y:2,type:'vortex'}],
+      allowed_blocks:["AVANZAR","GIRAR_IZQ","GIRAR_DER","REPETIR_2"],
       max_blocks:14
+    },
+    {
+      level_id:"lvl_003",
+      name:"3 - Roraima, la Triple Frontera",
+      region:"Monte Roraima",
+      story:"Desde aquí, Coby aprende un nuevo poder: el bloque <b>Si obstáculo…</b> le permite reaccionar automáticamente ante lo que encuentre enfrente, sin que tengas que preverlo todo. Úsalo junto a un giro para esquivar sin chocar.",
+      grid_size:[6,6],
+      start:{x:0,y:0,dir:1},
+      goal:{x:5,y:5},
+      required_crystals:2,
+      crystals:[{x:3,y:0},{x:5,y:2}],
+      obstacles:[{x:1,y:0,type:'volcano'},{x:1,y:1,type:'volcano'},{x:2,y:3,type:'volcano'},{x:4,y:4,type:'vortex'}],
+      allowed_blocks:["AVANZAR","GIRAR_IZQ","GIRAR_DER","REPETIR_2","SI_OBSTACULO"],
+      max_blocks:12
+    },
+    {
+      level_id:"lvl_004",
+      name:"4 - Kavac, el Pozo de Cristal",
+      region:"Canaima",
+      story:"Las cavernas de <b>Kavac</b> están llenas de vórtices ciber-vegetales impredecibles. Combina <b>Si obstáculo…</b> con giros para que Coby esquive por sí mismo mientras recolecta <b>3 cristales</b>.",
+      grid_size:[7,7],
+      start:{x:0,y:6,dir:0},
+      goal:{x:6,y:0},
+      required_crystals:3,
+      crystals:[{x:1,y:4},{x:3,y:3},{x:5,y:1}],
+      obstacles:[{x:1,y:5,type:'volcano'},{x:1,y:1,type:'volcano'},{x:4,y:4,type:'vortex'},{x:3,y:1,type:'vortex'},{x:5,y:3,type:'volcano'}],
+      allowed_blocks:["AVANZAR","GIRAR_IZQ","GIRAR_DER","REPETIR_2","SI_OBSTACULO"],
+      max_blocks:16
+    },
+    {
+      level_id:"lvl_005",
+      name:"5 - Canaima, el Faro Eterno",
+      region:"Parque Nacional Canaima",
+      story:"El desafío final del Parque Nacional Canaima. El tablero es más grande y los obstáculos abundan: <b>4 cristales</b> te esperan antes del Faro Eterno. Programa con precisión.",
+      grid_size:[8,8],
+      start:{x:0,y:7,dir:1},
+      goal:{x:7,y:0},
+      required_crystals:4,
+      crystals:[{x:2,y:5},{x:4,y:4},{x:6,y:2},{x:3,y:1}],
+      obstacles:[{x:1,y:6,type:'volcano'},{x:1,y:2,type:'volcano'},{x:5,y:5,type:'vortex'},{x:6,y:4,type:'vortex'},{x:3,y:3,type:'volcano'},{x:2,y:1,type:'vortex'}],
+      allowed_blocks:["AVANZAR","GIRAR_IZQ","GIRAR_DER","REPETIR_2","SI_OBSTACULO"],
+      max_blocks:20
     }
   ];
   // dir: 0=Norte(-y) 1=Este(+x) 2=Sur(+y) 3=Oeste(-x)
@@ -456,6 +530,8 @@
     document.getElementById('missionCrystals').textContent = lv.required_crystals;
     document.getElementById('missionMaxBlocks').textContent = lv.max_blocks;
     document.getElementById('missionGrid').textContent = lv.grid_size[0]+'×'+lv.grid_size[1];
+    var blockNames = {AVANZAR:'Avanzar',GIRAR_IZQ:'Girar Izq.',GIRAR_DER:'Girar Der.',REPETIR_2:'Repetir',SI_OBSTACULO:'Si obstáculo'};
+    document.getElementById('missionBlocks').textContent = lv.allowed_blocks.map(function(b){return blockNames[b];}).join(', ');
   }
 
   /* ============ ENERGY ============ */
@@ -473,6 +549,7 @@
   function addCommand(type){
     if (state.running) return;
     var lv = level();
+    if (!lv.allowed_blocks.includes(type)) return;
     if (type === 'REPETIR_2'){
       if (state.steps.length===0) return;
       var last = state.steps[state.steps.length-1];
@@ -482,8 +559,16 @@
       renderWorkspace(); renderHUD();
       return;
     }
+    if (type === 'SI_OBSTACULO'){
+      if (state.steps.length===0) return;
+      var lastC = state.steps[state.steps.length-1];
+      if (lastC.conditional) return; // ya es condicional
+      lastC.conditional = true;
+      renderWorkspace(); renderHUD();
+      return;
+    }
     if (state.steps.length >= lv.max_blocks) return;
-    state.steps.push({type:type, repeat:1});
+    state.steps.push({type:type, repeat:1, conditional:false});
     recomputeEnergy();
     renderWorkspace(); renderHUD();
   }
@@ -500,21 +585,38 @@
     ws.innerHTML = '';
     state.steps.forEach(function(step, i){
       var row = document.createElement('div');
-      row.className = 'step';
+      row.className = 'step'+(step.conditional?' step-conditional':'');
       row.id = 'step-'+i;
+      var lbl = (step.conditional ? 'Si obstáculo → ' : '') + LABELS[step.type];
       row.innerHTML =
         '<span class="idx">'+(i+1)+'</span>'+
         '<span class="dot '+DOTCLASS[step.type]+'"></span>'+
-        '<span class="label">'+LABELS[step.type]+'</span>'+
+        '<span class="label">'+lbl+'</span>'+
         (step.repeat===2 ? '<span class="x2">×2</span>' : '')+
+        (step.conditional ? '<span class="cond-badge">SI</span>' : '')+
         '<button class="del" data-i="'+i+'">✕</button>';
       ws.appendChild(row);
     });
-    document.getElementById('blockCount').textContent = state.steps.length+' / '+level().max_blocks+' bloques';
+    var lv = level();
+    document.getElementById('blockCount').textContent = state.steps.length+' / '+lv.max_blocks+' bloques';
+    var lastStep = state.steps[state.steps.length-1];
+    var hasSteps = state.steps.length>0;
+    var atMax = state.steps.length >= lv.max_blocks;
+
+    document.querySelectorAll('[data-cmd="AVANZAR"],[data-cmd="GIRAR_IZQ"],[data-cmd="GIRAR_DER"]').forEach(function(b){
+      b.disabled = atMax || !lv.allowed_blocks.includes(b.dataset.cmd);
+    });
     var repBtn = document.querySelector('[data-cmd="REPETIR_2"]');
-    repBtn.disabled = state.steps.length===0 || state.steps[state.steps.length-1].repeat===2;
-    var atMax = state.steps.length >= level().max_blocks;
-    document.querySelectorAll('[data-cmd="AVANZAR"],[data-cmd="GIRAR_IZQ"],[data-cmd="GIRAR_DER"]').forEach(function(b){ b.disabled = atMax; });
+    repBtn.disabled = !lv.allowed_blocks.includes('REPETIR_2') || !hasSteps || lastStep.repeat===2;
+
+    var condBtn = document.querySelector('[data-cmd="SI_OBSTACULO"]');
+    var condAllowed = lv.allowed_blocks.includes('SI_OBSTACULO');
+    condBtn.classList.toggle('block-locked', !condAllowed);
+    condBtn.classList.toggle('block-conditional', condAllowed);
+    var condTag = condBtn.querySelector('.soon-tag');
+    if (condTag) condTag.textContent = condAllowed ? '' : 'Nivel 3+';
+    if (condTag) condTag.style.display = condAllowed ? 'none' : 'block';
+    condBtn.disabled = !condAllowed || !hasSteps || lastStep.conditional;
   }
 
   document.getElementById('workspace').addEventListener('click', function(e){
@@ -543,6 +645,8 @@
   var boardWrap = document.querySelector('.board-wrap');
   var tileW=64, tileH=32;
   var rafId = null, tPrev = 0, tAccum = 0;
+  var boardZoom = 1;
+  function setZoom(z){ boardZoom = Math.max(0.65, Math.min(2.2, z)); }
 
   function resizeCanvas(){
     var r = boardWrap.getBoundingClientRect();
@@ -553,6 +657,14 @@
     ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
   }
   window.addEventListener('resize', resizeCanvas);
+
+  document.getElementById('zoomIn').addEventListener('click', function(){ setZoom(boardZoom+0.18); });
+  document.getElementById('zoomOut').addEventListener('click', function(){ setZoom(boardZoom-0.18); });
+  document.getElementById('zoomReset').addEventListener('click', function(){ setZoom(1); });
+  canvas.addEventListener('wheel', function(e){
+    e.preventDefault();
+    setZoom(boardZoom + (e.deltaY < 0 ? 0.1 : -0.1));
+  }, {passive:false});
 
   function isoPos(gx,gy){
     var lv = level();
@@ -683,6 +795,11 @@
     updateParticles(dt);
     updateCobyVisual(dt);
 
+    ctx.save();
+    ctx.translate(cw/2, ch/2);
+    ctx.scale(boardZoom, boardZoom);
+    ctx.translate(-cw/2, -ch/2);
+
     var n = lv.grid_size[0], m = lv.grid_size[1];
     var cells = [];
     for (var gy=0; gy<m; gy++) for (var gx=0; gx<n; gx++) cells.push({gx:gx,gy:gy});
@@ -777,6 +894,7 @@
 
     drawCoby(now);
     drawParticles();
+    ctx.restore();
     rafId = requestAnimationFrame(drawBoard);
   }
 
@@ -901,7 +1019,7 @@
     var out = [];
     state.steps.forEach(function(s){
       var reps = s.repeat===2 ? 2 : 1;
-      for (var k=0;k<reps;k++) out.push(s.type);
+      for (var k=0;k<reps;k++) out.push({type:s.type, conditional:!!s.conditional});
     });
     return out;
   }
@@ -942,11 +1060,23 @@
       var mv = moves[i];
       var c = state.coby;
 
-      if (mv === 'GIRAR_IZQ'){
+      if (mv.conditional){
+        var av = DIRV[c.dir];
+        var ax = c.x+av.x, ay = c.y+av.y;
+        var obstacleAhead = !inBounds(ax,ay) || !!obstacleAt(ax,ay);
+        if (!obstacleAhead){
+          sfxSkip();
+          i++;
+          setTimeout(step, 230);
+          return;
+        }
+      }
+
+      if (mv.type === 'GIRAR_IZQ'){
         c.dir = (c.dir+3)%4; sfxTurn();
-      } else if (mv === 'GIRAR_DER'){
+      } else if (mv.type === 'GIRAR_DER'){
         c.dir = (c.dir+1)%4; sfxTurn();
-      } else if (mv === 'AVANZAR'){
+      } else if (mv.type === 'AVANZAR'){
         var v = DIRV[c.dir];
         var nx = c.x+v.x, ny = c.y+v.y;
         if (!inBounds(nx,ny) || obstacleAt(nx,ny)){
