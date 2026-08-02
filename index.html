@@ -277,6 +277,7 @@
         <span id="energyPct">100%</span>
       </div>
       <button class="levels-btn" id="btnLevels2">🗺 Niveles</button>
+      <button class="levels-btn" id="btnMute" title="Silenciar sonido">🔊</button>
     </div>
 
     <div class="main-row">
@@ -363,6 +364,7 @@
     </div>
   </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -380,9 +382,39 @@
   }
 
   /* ============ AUDIO (Web Audio API, sintetizado) ============ */
-  var actx = null;
-  function ac(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
-  function tone(freq, dur, type, gainMax, delay){
+  var actx = null, masterGain = null, noiseBuf = null, ambientStarted = false;
+  var muted = (function(){ try{ return localStorage.getItem('tepuyCodeMuted_v1')==='1'; }catch(e){ return false; } })();
+
+  function ac(){
+    if (!actx){
+      try{
+        actx = new (window.AudioContext||window.webkitAudioContext)();
+        masterGain = actx.createGain();
+        masterGain.gain.value = muted ? 0 : 0.9;
+        masterGain.connect(actx.destination);
+        noiseBuf = makeNoiseBuffer(actx, 1.0);
+      }catch(e){}
+    }
+    if (actx && !ambientStarted){ ambientStarted = true; startAmbientPad(); }
+    return actx;
+  }
+
+  function makeNoiseBuffer(c, dur){
+    var buf = c.createBuffer(1, c.sampleRate*dur, c.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+    return buf;
+  }
+
+  function setMuted(m){
+    muted = m;
+    try{ localStorage.setItem('tepuyCodeMuted_v1', m?'1':'0'); }catch(e){}
+    if (masterGain) masterGain.gain.setTargetAtTime(m?0:0.9, ac().currentTime, 0.05);
+    var btn = document.getElementById('btnMute');
+    if (btn) btn.textContent = m ? '🔇' : '🔊';
+  }
+
+  function tone(freq, dur, type, gainMax, delay, detuneCents){
     var c = ac(); if(!c) return;
     delay = delay||0;
     var t0 = c.currentTime + delay;
@@ -390,18 +422,92 @@
     var gain = c.createGain();
     osc.type = type||'sine';
     osc.frequency.setValueAtTime(freq, t0);
+    if (detuneCents) osc.detune.setValueAtTime(detuneCents, t0);
     gain.gain.setValueAtTime(0.0001, t0);
     gain.gain.exponentialRampToValueAtTime(gainMax||0.18, t0+0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
-    osc.connect(gain); gain.connect(c.destination);
+    osc.connect(gain); gain.connect(masterGain);
+    osc.start(t0); osc.stop(t0+dur+0.02);
+    return osc;
+  }
+
+  function toneSweep(freqFrom, freqTo, dur, type, gainMax, delay){
+    var c = ac(); if(!c) return;
+    delay = delay||0;
+    var t0 = c.currentTime + delay;
+    var osc = c.createOscillator();
+    var gain = c.createGain();
+    osc.type = type||'sine';
+    osc.frequency.setValueAtTime(freqFrom, t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20,freqTo), t0+dur);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(gainMax||0.16, t0+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain); gain.connect(masterGain);
     osc.start(t0); osc.stop(t0+dur+0.02);
   }
-  function sfxStep(){ tone(420,0.09,'square',0.10); }
-  function sfxTurn(){ tone(560,0.07,'triangle',0.10); }
-  function sfxSkip(){ tone(300,0.05,'sine',0.07); }
-  function sfxCrystal(){ tone(880,0.10,'sine',0.16); tone(1320,0.14,'sine',0.13,0.07); }
-  function sfxError(){ tone(160,0.28,'sawtooth',0.16); tone(110,0.3,'sawtooth',0.12,0.05); }
-  function sfxVictory(){ [660,880,1100,1320].forEach(function(f,i){ tone(f,0.22,'triangle',0.15,i*0.11); }); }
+
+  function noiseBurst(dur, gainMax, delay, filterFreq, filterType){
+    var c = ac(); if(!c || !noiseBuf) return;
+    delay = delay||0;
+    var t0 = c.currentTime + delay;
+    var src = c.createBufferSource();
+    src.buffer = noiseBuf;
+    var filt = c.createBiquadFilter();
+    filt.type = filterType||'bandpass';
+    filt.frequency.setValueAtTime(filterFreq||1200, t0);
+    var gain = c.createGain();
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(gainMax||0.15, t0+0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    src.connect(filt); filt.connect(gain); gain.connect(masterGain);
+    src.start(t0); src.stop(t0+dur+0.02);
+  }
+
+  // Small organic pitch wobble so repeated footsteps/turns don't sound robotic
+  function jitter(cents){ return (Math.random()*2-1)*cents; }
+
+  function sfxClick(){ tone(720, 0.045, 'sine', 0.05, 0, jitter(20)); }
+  function sfxStep(){
+    tone(410, 0.09, 'square', 0.09, 0, jitter(25));
+    noiseBurst(0.05, 0.04, 0, 2600, 'highpass');
+  }
+  function sfxTurn(){ toneSweep(480, 720, 0.09, 'triangle', 0.10, 0); }
+  function sfxSkip(){ tone(300, 0.05, 'sine', 0.06); }
+  function sfxCrystal(){
+    tone(880, 0.11, 'sine', 0.16);
+    tone(1318, 0.16, 'sine', 0.12, 0.06);
+    tone(1760, 0.18, 'triangle', 0.08, 0.11);
+    noiseBurst(0.12, 0.05, 0.02, 5200, 'highpass');
+  }
+  function sfxError(){
+    toneSweep(220, 90, 0.3, 'sawtooth', 0.15, 0);
+    tone(70, 0.32, 'sine', 0.14, 0.03);
+    noiseBurst(0.22, 0.13, 0, 500, 'lowpass');
+  }
+  function sfxVictory(){
+    [660,880,1100,1320].forEach(function(f,i){ tone(f,0.22,'triangle',0.15,i*0.11); });
+    // sustained major-ish chord at the end
+    [880,1100,1320].forEach(function(f,i){ tone(f, 0.9, 'sine', 0.07, 0.44); });
+    toneSweep(1200, 2400, 0.5, 'sine', 0.05, 0.42);
+  }
+
+  /* Subtle ambient pad — two detuned low tones through a slow-sweeping filter,
+     giving the scene a soft cyber-tropical hum without heavy audio assets. */
+  function startAmbientPad(){
+    var c = ac(); if(!c) return;
+    var o1 = c.createOscillator(), o2 = c.createOscillator();
+    o1.type='sine'; o2.type='sine';
+    o1.frequency.value = 110; o2.frequency.value = 165; // root + fifth
+    var filt = c.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value = 600;
+    var g = c.createGain(); g.gain.value = 0.028;
+    var lfo = c.createOscillator(); lfo.type='sine'; lfo.frequency.value = 0.06;
+    var lfoGain = c.createGain(); lfoGain.gain.value = 260;
+    lfo.connect(lfoGain); lfoGain.connect(filt.frequency);
+    o1.connect(filt); o2.connect(filt); filt.connect(g); g.connect(masterGain);
+    o1.start(); o2.start(); lfo.start();
+  }
 
   /* ============ LEVEL DATA ============ */
   var LEVELS = [
@@ -492,9 +598,7 @@
   };
   // Smoothed visual position/rotation of Coby, interpolated toward state.coby every frame
   // (Fase 1: animacion fluida de vuelo y giro)
-  var cobyVisual = { x:0, y:0, angle:0, hopPhase:0, squash:0 };
-  var particles = []; // {x,y,vx,vy,life,maxLife,size,color,glow,type}
-  var MAX_PARTICLES = 240;
+  var cobyVisual = { wx:0, wz:0, angle:0, hopPhase:0 };
 
   var PROGRESS_KEY = 'tepuyCodeProgress_v1';
   function loadProgress(){
@@ -514,13 +618,15 @@
     state.running = false;
     recomputeEnergy();
     renderAll();
-    cobyVisual.x = lv.start.x; cobyVisual.y = lv.start.y;
+    var n = lv.grid_size[0], m = lv.grid_size[1];
+    cobyVisual.wx = worldX(lv.start.x,n); cobyVisual.wz = worldZ(lv.start.y,m);
     cobyVisual.angle = DIRANGLE[lv.start.dir];
-    particles.length = 0;
+    clearParticles3D();
   }
 
   function loadLevel(idx, clearSteps){
     state.levelIndex = idx;
+    buildLevelScene();
     resetLevelState(clearSteps===undefined?true:clearSteps);
     var lv = level();
     document.getElementById('hudLevelTitle').textContent = ('NIVEL '+(idx+1)+': '+lv.name.split(' - ')[1]).toUpperCase();
@@ -625,12 +731,13 @@
   });
 
   document.querySelectorAll('.block-btn').forEach(function(b){
-    b.addEventListener('click', function(){ addCommand(b.dataset.cmd); });
+    b.addEventListener('click', function(){ sfxClick(); addCommand(b.dataset.cmd); });
   });
 
   /* ============ TABS ============ */
   document.querySelectorAll('.tab-btn').forEach(function(b){
     b.addEventListener('click', function(){
+      sfxClick();
       document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active');});
       b.classList.add('active');
       var tab = b.dataset.tab;
@@ -639,53 +746,22 @@
     });
   });
 
-  /* ============ CANVAS / ISOMETRIC BOARD ============ */
+  /* ============ 3D BOARD (Three.js WebGL) ============ */
   var canvas = document.getElementById('board');
-  var ctx = canvas.getContext('2d');
   var boardWrap = document.querySelector('.board-wrap');
-  var tileW=64, tileH=32;
+  var renderer, scene, camera;
   var rafId = null, tPrev = 0, tAccum = 0;
-  var boardZoom = 1;
-  function setZoom(z){ boardZoom = Math.max(0.65, Math.min(2.2, z)); }
-
-  function resizeCanvas(){
-    var r = boardWrap.getBoundingClientRect();
-    canvas.width = r.width * devicePixelRatio;
-    canvas.height = r.height * devicePixelRatio;
-    canvas.style.width = r.width+'px';
-    canvas.style.height = r.height+'px';
-    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-  }
-  window.addEventListener('resize', resizeCanvas);
-
-  document.getElementById('zoomIn').addEventListener('click', function(){ setZoom(boardZoom+0.18); });
-  document.getElementById('zoomOut').addEventListener('click', function(){ setZoom(boardZoom-0.18); });
-  document.getElementById('zoomReset').addEventListener('click', function(){ setZoom(1); });
-  canvas.addEventListener('wheel', function(e){
-    e.preventDefault();
-    setZoom(boardZoom + (e.deltaY < 0 ? 0.1 : -0.1));
-  }, {passive:false});
-
-  function isoPos(gx,gy){
-    var lv = level();
-    var n = lv.grid_size[0];
-    var cw = canvas.width/devicePixelRatio, ch = canvas.height/devicePixelRatio;
-    var originX = cw/2;
-    var originY = ch/2 - (n*tileH)/2 + 30;
-    return {
-      x: originX + (gx-gy)*(tileW/2),
-      y: originY + (gx+gy)*(tileH/2)
-    };
-  }
-
-  function diamondPath(cx,cy,w,h){
-    ctx.beginPath();
-    ctx.moveTo(cx, cy-h/2);
-    ctx.lineTo(cx+w/2, cy);
-    ctx.lineTo(cx, cy+h/2);
-    ctx.lineTo(cx-w/2, cy);
-    ctx.closePath();
-  }
+  var tileSize = 2.15;
+  var levelGroup = null;
+  var cobyGroup = null, cobyWingL, cobyWingR, cobyLight;
+  var cameraTarget = new THREE.Vector3(0,0.3,0);
+  var cameraDistance = 15, defaultCameraDistance = 15;
+  var cameraAzimuth = Math.PI*0.25, defaultAzimuth = Math.PI*0.25;
+  var cameraPolar = 0.95, defaultPolar = 0.95;
+  var MIN_DIST=6, MAX_DIST=26;
+  var particlePool = [];
+  var MAX_PARTICLES = 140;
+  var particleGeo;
 
   function obstacleAt(gx,gy){
     var lv = level();
@@ -701,213 +777,259 @@
     var lv = level();
     return gx>=0 && gy>=0 && gx<lv.grid_size[0] && gy<lv.grid_size[1];
   }
+  function worldX(gx,n){ return (gx-(n-1)/2)*tileSize; }
+  function worldZ(gy,m){ return (gy-(m-1)/2)*tileSize; }
 
-  /* ============ PARTICLE SYSTEM (Fase 1: efectos de particulas neon) ============ */
-  function spawnParticle(p){
-    if (particles.length >= MAX_PARTICLES) particles.shift();
-    particles.push(p);
+  function initThree(){
+    renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+    if (THREE.ACESFilmicToneMapping){ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; }
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0a1830, 0.032);
+
+    camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+
+    scene.add(new THREE.HemisphereLight(0x8fd6ff, 0x0c1730, 0.55));
+    scene.add(new THREE.AmbientLight(0x25406a, 0.45));
+    var moon = new THREE.DirectionalLight(0xbfe0ff, 0.95);
+    moon.position.set(6, 12, 4);
+    moon.castShadow = true;
+    moon.shadow.mapSize.set(1024,1024);
+    moon.shadow.camera.left=-12; moon.shadow.camera.right=12;
+    moon.shadow.camera.top=12; moon.shadow.camera.bottom=-12;
+    moon.shadow.camera.far=30;
+    scene.add(moon);
+
+    var groundGeo = new THREE.PlaneGeometry(60,60);
+    var groundMat = new THREE.MeshStandardMaterial({color:0x050b16, roughness:0.95, metalness:0.05});
+    var ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    ground.position.y = -0.35;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    particleGeo = new THREE.SphereGeometry(0.055, 6, 6);
+
+    updateCameraPosition();
+    setupBoardInteraction();
   }
-  function spawnCrystalBurst(gx,gy){
-    var p = isoPos(gx,gy);
-    for (var i=0;i<16;i++){
-      var a = (Math.PI*2/16)*i + Math.random()*0.3;
-      var sp = 40+Math.random()*60;
-      spawnParticle({
-        x:p.x, y:p.y-16, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp*0.6-20,
-        life:0.55+Math.random()*0.25, maxLife:0.8, size:2+Math.random()*2,
-        color: Math.random()>.5 ? '#9dfcff' : '#b45cff', glow:12
-      });
-    }
+
+  function updateCameraPosition(){
+    var x = cameraTarget.x + cameraDistance*Math.sin(cameraPolar)*Math.sin(cameraAzimuth);
+    var z = cameraTarget.z + cameraDistance*Math.sin(cameraPolar)*Math.cos(cameraAzimuth);
+    var y = cameraTarget.y + cameraDistance*Math.cos(cameraPolar);
+    camera.position.set(x,y,z);
+    camera.lookAt(cameraTarget);
   }
-  function spawnErrorBurst(gx,gy){
-    var p = isoPos(gx,gy);
-    for (var i=0;i<12;i++){
-      var a = Math.random()*Math.PI*2;
-      var sp = 30+Math.random()*50;
-      spawnParticle({
-        x:p.x, y:p.y-6, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp*0.5-10,
-        life:0.4+Math.random()*0.2, maxLife:0.6, size:2+Math.random()*2.5,
-        color: Math.random()>.4 ? '#ff3b5c' : '#ff9a3c', glow:14
-      });
-    }
+
+  function resizeCanvas(){
+    var r = boardWrap.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / Math.max(1,r.height);
+    camera.updateProjectionMatrix();
   }
-  function spawnVictoryConfetti(){
+  window.addEventListener('resize', resizeCanvas);
+
+  function setZoom(d){ cameraDistance = Math.max(MIN_DIST, Math.min(MAX_DIST, d)); updateCameraPosition(); }
+  function resetView(){ cameraDistance=defaultCameraDistance; cameraAzimuth=defaultAzimuth; cameraPolar=defaultPolar; updateCameraPosition(); }
+
+  function setupBoardInteraction(){
+    var dragging=false, lastX=0, lastY=0;
+    canvas.style.cursor='grab';
+    canvas.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId); canvas.style.cursor='grabbing'; });
+    canvas.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      var dx = e.clientX-lastX, dy = e.clientY-lastY;
+      lastX=e.clientX; lastY=e.clientY;
+      cameraAzimuth -= dx*0.006;
+      cameraPolar = Math.max(0.35, Math.min(1.4, cameraPolar - dy*0.005));
+      updateCameraPosition();
+    });
+    canvas.addEventListener('pointerup', function(){ dragging=false; canvas.style.cursor='grab'; });
+    canvas.addEventListener('pointerleave', function(){ dragging=false; canvas.style.cursor='grab'; });
+    canvas.addEventListener('wheel', function(e){
+      e.preventDefault();
+      setZoom(cameraDistance + (e.deltaY<0?-1.2:1.2));
+    }, {passive:false});
+    document.getElementById('zoomIn').addEventListener('click', function(){ setZoom(cameraDistance-1.6); });
+    document.getElementById('zoomOut').addEventListener('click', function(){ setZoom(cameraDistance+1.6); });
+    document.getElementById('zoomReset').addEventListener('click', resetView);
+  }
+
+  function disposeObject3D(obj){
+    obj.traverse(function(o){
+      if (o.userData && o.userData.ownGeo && o.geometry) o.geometry.dispose();
+      if (o.material){
+        if (Array.isArray(o.material)) o.material.forEach(function(mt){mt.dispose();});
+        else o.material.dispose();
+      }
+    });
+  }
+
+  function buildLevelScene(){
+    if (levelGroup){ scene.remove(levelGroup); disposeObject3D(levelGroup); }
+    levelGroup = new THREE.Group();
     var lv = level();
-    var p = isoPos(lv.goal.x, lv.goal.y);
-    var colors = ['#ffd166','#39ff7a','#29c6ff','#b45cff','#ff9a3c'];
-    for (var i=0;i<50;i++){
-      var a = Math.PI + Math.random()*Math.PI;
-      var sp = 60+Math.random()*90;
-      spawnParticle({
-        x:p.x+(Math.random()-0.5)*20, y:p.y-14, vx:Math.cos(a)*sp*0.6, vy:-Math.abs(Math.sin(a)*sp)-40,
-        life:1.1+Math.random()*0.6, maxLife:1.7, size:2.5+Math.random()*2.5,
-        color: colors[i%colors.length], glow:10, gravity:140
-      });
-    }
-  }
-  function spawnTrailPuff(x,y){
-    spawnParticle({
-      x:x+(Math.random()-0.5)*6, y:y+(Math.random()-0.5)*4, vx:(Math.random()-0.5)*8, vy:-10-Math.random()*10,
-      life:0.35+Math.random()*0.2, maxLife:0.5, size:1.5+Math.random()*1.5,
-      color:'#7ef7ff', glow:8
-    });
-  }
-  function spawnEmber(gx,gy){
-    var p = isoPos(gx,gy);
-    spawnParticle({
-      x:p.x+(Math.random()-0.5)*14, y:p.y-4, vx:(Math.random()-0.5)*6, vy:-22-Math.random()*18,
-      life:0.7+Math.random()*0.4, maxLife:1.1, size:1.5+Math.random()*1.8,
-      color: Math.random()>.5 ? '#ff9a3c' : '#ff3b5c', glow:10
-    });
-  }
-  function updateParticles(dt){
-    for (var i=particles.length-1;i>=0;i--){
-      var pt = particles[i];
-      pt.life -= dt;
-      if (pt.life<=0){ particles.splice(i,1); continue; }
-      pt.x += pt.vx*dt;
-      pt.y += pt.vy*dt;
-      if (pt.gravity) pt.vy += pt.gravity*dt;
-    }
-  }
-  function drawParticles(){
-    particles.forEach(function(pt){
-      var a = Math.max(0, pt.life/pt.maxLife);
-      ctx.save();
-      ctx.globalAlpha = a;
-      ctx.fillStyle = pt.color;
-      ctx.shadowColor = pt.color;
-      ctx.shadowBlur = pt.glow||8;
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, pt.size*a+0.5, 0, Math.PI*2);
-      ctx.fill();
-      ctx.restore();
-    });
-  }
-
-  function drawBoard(now){
-    if (!tPrev) tPrev = now;
-    var dt = (now-tPrev)/1000; tPrev = now; tAccum += dt;
-
-    var lv = level();
-    var cw = canvas.width/devicePixelRatio, ch = canvas.height/devicePixelRatio;
-    ctx.clearRect(0,0,cw,ch);
-    updateParticles(dt);
-    updateCobyVisual(dt);
-
-    ctx.save();
-    ctx.translate(cw/2, ch/2);
-    ctx.scale(boardZoom, boardZoom);
-    ctx.translate(-cw/2, -ch/2);
-
     var n = lv.grid_size[0], m = lv.grid_size[1];
-    var cells = [];
-    for (var gy=0; gy<m; gy++) for (var gx=0; gx<n; gx++) cells.push({gx:gx,gy:gy});
-    cells.sort(function(a,b){ return (a.gx+a.gy)-(b.gx+b.gy); });
 
-    cells.forEach(function(cell){
-      var p = isoPos(cell.gx,cell.gy);
-      var isGoal = (cell.gx===lv.goal.x && cell.gy===lv.goal.y);
-      var obs = obstacleAt(cell.gx,cell.gy);
+    defaultCameraDistance = Math.max(MIN_DIST, Math.min(MAX_DIST, tileSize*Math.max(n,m)*0.95));
+    cameraDistance = defaultCameraDistance; cameraAzimuth = defaultAzimuth; cameraPolar = defaultPolar;
+    cameraTarget.set(0,0.3,0);
+    updateCameraPosition();
 
-      ctx.save();
-      diamondPath(p.x,p.y,tileW,tileH);
-      var grad;
-      if (obs){
-        grad = ctx.createLinearGradient(p.x,p.y-tileH/2,p.x,p.y+tileH/2);
-        if (obs.type==='volcano'){ grad.addColorStop(0,'#5a1420'); grad.addColorStop(1,'#26060c'); }
-        else { grad.addColorStop(0,'#3a1a55'); grad.addColorStop(1,'#160822'); }
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.strokeStyle = obs.type==='volcano' ? 'rgba(255,59,92,.55)' : 'rgba(180,92,255,.55)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      } else if (isGoal){
-        grad = ctx.createLinearGradient(p.x,p.y-tileH/2,p.x,p.y+tileH/2);
-        grad.addColorStop(0,'#5a4318'); grad.addColorStop(1,'#2a1f08');
-        ctx.fillStyle = grad; ctx.fill();
-        ctx.strokeStyle = 'rgba(255,209,102,.8)'; ctx.lineWidth = 2; ctx.stroke();
-      } else {
-        grad = ctx.createLinearGradient(p.x,p.y-tileH/2,p.x,p.y+tileH/2);
-        grad.addColorStop(0,'rgba(20,60,50,.55)'); grad.addColorStop(1,'rgba(8,26,22,.55)');
-        ctx.fillStyle = grad; ctx.fill();
-        ctx.strokeStyle = 'rgba(57,255,122,.28)'; ctx.lineWidth = 1; ctx.stroke();
-      }
-      ctx.restore();
+    var tileGeo = new THREE.BoxGeometry(tileSize*0.9, 0.16, tileSize*0.9);
+    for (var gy=0; gy<m; gy++){
+      for (var gx=0; gx<n; gx++){
+        var obs = obstacleAt(gx,gy);
+        var isGoal = (gx===lv.goal.x && gy===lv.goal.y);
+        var color, emissive, edgeColor;
+        if (obs){
+          if (obs.type==='volcano'){ color=0x3a1420; emissive=0x4a0f18; edgeColor=0xff3b5c; }
+          else { color=0x2a1640; emissive=0x2a0f45; edgeColor=0xb45cff; }
+        } else if (isGoal){ color=0x3a2f10; emissive=0x2a1f08; edgeColor=0xffd166; }
+        else { color=0x0d2a24; emissive=0x061a16; edgeColor=0x39ff7a; }
 
-      // obstacle icon
-      if (obs){
-        ctx.save();
-        ctx.translate(p.x,p.y-6);
-        if (obs.type==='volcano'){
-          ctx.beginPath();
-          ctx.moveTo(-12,10); ctx.lineTo(0,-14); ctx.lineTo(12,10); ctx.closePath();
-          ctx.fillStyle = '#7a2233'; ctx.fill();
-          ctx.fillStyle = '#ff3b5c';
-          ctx.beginPath(); ctx.arc(0,-13+Math.sin(tAccum*4)*2,3.5,0,Math.PI*2); ctx.fill();
-          ctx.shadowColor='#ff3b5c'; ctx.shadowBlur=14; ctx.fill();
-          if (Math.random()<0.06 && particles.length<MAX_PARTICLES) spawnEmber(cell.gx,cell.gy);
-        } else {
-          ctx.strokeStyle = '#b45cff'; ctx.lineWidth=2; ctx.shadowColor='#b45cff'; ctx.shadowBlur=10;
-          ctx.beginPath(); ctx.arc(0,0,9+Math.sin(tAccum*3)*2,tAccum*2, tAccum*2+4.5); ctx.stroke();
-          ctx.beginPath(); ctx.arc(0,0,5+Math.sin(tAccum*3+1.5)*1.5,tAccum*2.6+2, tAccum*2.6+4.6); ctx.stroke();
+        var mat = new THREE.MeshStandardMaterial({color:color, emissive:emissive, roughness:0.6, metalness:0.2});
+        var tile = new THREE.Mesh(tileGeo, mat);
+        tile.userData.ownGeo = false;
+        tile.position.set(worldX(gx,n), 0, worldZ(gy,m));
+        tile.receiveShadow = true;
+        levelGroup.add(tile);
+
+        var edges = new THREE.LineSegments(new THREE.EdgesGeometry(tileGeo), new THREE.LineBasicMaterial({color:edgeColor, transparent:true, opacity:0.85}));
+        edges.userData.ownGeo = true;
+        edges.position.copy(tile.position);
+        levelGroup.add(edges);
+
+        if (obs){
+          if (obs.type==='volcano'){
+            var cone = new THREE.Mesh(new THREE.ConeGeometry(0.5,1.0,6), new THREE.MeshStandardMaterial({color:0x6a2233, roughness:0.85}));
+            cone.userData.ownGeo = true;
+            cone.position.set(tile.position.x, 0.58, tile.position.z);
+            cone.castShadow = true;
+            levelGroup.add(cone);
+            var tip = new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8), new THREE.MeshStandardMaterial({color:0xff3b5c, emissive:0xff3b5c, emissiveIntensity:1.4}));
+            tip.userData.ownGeo = true; tip.userData.type='lavaTip'; tip.userData.baseY = 1.05;
+            tip.position.set(tile.position.x, 1.05, tile.position.z);
+            levelGroup.add(tip);
+          } else {
+            var tor = new THREE.Mesh(new THREE.TorusGeometry(0.4,0.09,8,20), new THREE.MeshStandardMaterial({color:0xb45cff, emissive:0xb45cff, emissiveIntensity:1.1, roughness:0.3}));
+            tor.userData.ownGeo = true; tor.userData.type='vortex';
+            tor.position.set(tile.position.x, 0.5, tile.position.z);
+            tor.rotation.x = Math.PI/2;
+            levelGroup.add(tor);
+            var tor2 = new THREE.Mesh(new THREE.TorusGeometry(0.24,0.05,6,16), new THREE.MeshStandardMaterial({color:0x7ef7ff, emissive:0x7ef7ff, emissiveIntensity:1.1}));
+            tor2.userData.ownGeo = true; tor2.userData.type='vortexInner';
+            tor2.position.copy(tor.position);
+            tor2.rotation.x = Math.PI/2;
+            levelGroup.add(tor2);
+          }
         }
-        ctx.restore();
-      }
 
-      // goal icon
-      if (isGoal){
-        ctx.save();
-        ctx.translate(p.x,p.y-14);
-        var bob = Math.sin(tAccum*2)*3;
-        ctx.translate(0,bob);
-        ctx.fillStyle = '#ffe9b0';
-        ctx.shadowColor='#ffd166'; ctx.shadowBlur=18;
-        ctx.beginPath();
-        ctx.moveTo(-8,10); ctx.lineTo(-8,-6); ctx.lineTo(0,-16); ctx.lineTo(8,-6); ctx.lineTo(8,10); ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle='#a9740a'; ctx.lineWidth=1.2; ctx.stroke();
-        ctx.restore();
-      }
+        if (isGoal){
+          var ped = new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.5,0.35,8), new THREE.MeshStandardMaterial({color:0xffe9b0, emissive:0x5a4318, roughness:0.35, metalness:0.5}));
+          ped.userData.ownGeo = true;
+          ped.position.set(tile.position.x, 0.35, tile.position.z);
+          ped.castShadow = true;
+          levelGroup.add(ped);
+          var idol = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.5,0.22), new THREE.MeshStandardMaterial({color:0xffd166, emissive:0x7a5a10, roughness:0.4, metalness:0.4}));
+          idol.userData.ownGeo = true; idol.userData.type='goalIdol'; idol.userData.baseY = 0.78;
+          idol.position.set(tile.position.x, 0.78, tile.position.z);
+          levelGroup.add(idol);
+          var beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.14,3.2,10,1,true), new THREE.MeshBasicMaterial({color:0xffd166, transparent:true, opacity:0.14, side:THREE.DoubleSide}));
+          beam.userData.ownGeo = true;
+          beam.position.set(tile.position.x, 2.2, tile.position.z);
+          levelGroup.add(beam);
+          var goalLight = new THREE.PointLight(0xffd166, 1.1, 5.5);
+          goalLight.position.set(tile.position.x, 1.6, tile.position.z);
+          levelGroup.add(goalLight);
+        }
 
-      // crystal
-      var cr = crystalAt(cell.gx,cell.gy);
-      if (cr && !state.collected[cell.gx+','+cell.gy]){
-        ctx.save();
-        var bobc = Math.sin(tAccum*3 + cell.gx)*4;
-        ctx.translate(p.x,p.y-16+bobc);
-        var cg = ctx.createLinearGradient(0,-10,0,10);
-        cg.addColorStop(0,'#9dfcff'); cg.addColorStop(1,'#b45cff');
-        ctx.fillStyle = cg; ctx.shadowColor='#7ef7ff'; ctx.shadowBlur=16;
-        ctx.beginPath();
-        ctx.moveTo(0,-10); ctx.lineTo(7,0); ctx.lineTo(0,10); ctx.lineTo(-7,0); ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(0,10); ctx.stroke();
-        ctx.restore();
-        if (Math.random()<0.02 && particles.length<MAX_PARTICLES){
-          spawnParticle({x:p.x+(Math.random()-0.5)*6,y:p.y-16+bobc,vx:(Math.random()-0.5)*8,vy:-14-Math.random()*10,
-            life:0.5,maxLife:0.5,size:1.3,color:'#eafcff',glow:8});
+        var cr = crystalAt(gx,gy);
+        if (cr){
+          var crGroup = new THREE.Group();
+          crGroup.userData.type='crystal'; crGroup.userData.gx=gx; crGroup.userData.baseY=0.55;
+          var outer = new THREE.Mesh(new THREE.OctahedronGeometry(0.26), new THREE.MeshStandardMaterial({color:0x9dfcff, emissive:0x2fb8c8, emissiveIntensity:0.9, roughness:0.15, metalness:0.4, transparent:true, opacity:0.92}));
+          outer.userData.ownGeo = true;
+          var inner = new THREE.Mesh(new THREE.OctahedronGeometry(0.13), new THREE.MeshStandardMaterial({color:0xb45cff, emissive:0xb45cff, emissiveIntensity:1.2}));
+          inner.userData.ownGeo = true;
+          crGroup.add(outer); crGroup.add(inner);
+          crGroup.position.set(tile.position.x, 0.55, tile.position.z);
+          levelGroup.add(crGroup);
         }
       }
-    });
-
-    drawCoby(now);
-    drawParticles();
-    ctx.restore();
-    rafId = requestAnimationFrame(drawBoard);
+    }
+    scene.add(levelGroup);
   }
 
-  /* Smoothly interpolate cobyVisual toward the logical state.coby target each frame,
-     giving fluid flight + turning instead of instant teleport (Fase 1). */
+  function buildCoby(){
+    cobyGroup = new THREE.Group();
+
+    var body = new THREE.Mesh(new THREE.SphereGeometry(0.26,12,10), new THREE.MeshStandardMaterial({color:0x39ff7a, emissive:0x0f9e5e, emissiveIntensity:0.5, roughness:0.35, metalness:0.25}));
+    body.scale.set(1,0.72,1.35);
+    body.castShadow = true;
+    cobyGroup.add(body);
+
+    var head = new THREE.Mesh(new THREE.SphereGeometry(0.15,10,8), new THREE.MeshStandardMaterial({color:0x1fae64, emissive:0x0f9e5e, emissiveIntensity:0.4, roughness:0.35}));
+    head.position.set(0.28,0.06,0);
+    cobyGroup.add(head);
+
+    var gorget = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,8), new THREE.MeshStandardMaterial({color:0xff3b5c, emissive:0xff3b5c, emissiveIntensity:1.1}));
+    gorget.position.set(0.35,-0.02,0);
+    gorget.scale.set(1,0.7,0.6);
+    cobyGroup.add(gorget);
+
+    var beak = new THREE.Mesh(new THREE.ConeGeometry(0.035,0.32,6), new THREE.MeshStandardMaterial({color:0xffd166, emissive:0xffd166, emissiveIntensity:0.5}));
+    beak.rotation.z = -Math.PI/2;
+    beak.position.set(0.55,0.05,0);
+    cobyGroup.add(beak);
+
+    var eye = new THREE.Mesh(new THREE.SphereGeometry(0.025,6,6), new THREE.MeshStandardMaterial({color:0x04140a}));
+    eye.position.set(0.36,0.13,0.1);
+    cobyGroup.add(eye);
+
+    var tail = new THREE.Mesh(new THREE.ConeGeometry(0.09,0.42,6), new THREE.MeshStandardMaterial({color:0x1de9b6, emissive:0x0d8f6f, emissiveIntensity:0.4, transparent:true, opacity:0.85}));
+    tail.rotation.z = Math.PI/2;
+    tail.position.set(-0.42,0,0);
+    cobyGroup.add(tail);
+
+    var wingGeo = new THREE.PlaneGeometry(0.42,0.2);
+    var wingMatL = new THREE.MeshStandardMaterial({color:0x7ef7ff, emissive:0x2fb8c8, emissiveIntensity:0.6, side:THREE.DoubleSide, transparent:true, opacity:0.85, roughness:0.4});
+    var wingMatR = wingMatL.clone();
+    cobyWingL = new THREE.Mesh(wingGeo, wingMatL);
+    cobyWingL.position.set(-0.05,0.05,0.16);
+    cobyGroup.add(cobyWingL);
+    cobyWingR = new THREE.Mesh(wingGeo, wingMatR);
+    cobyWingR.position.set(-0.05,0.05,-0.16);
+    cobyGroup.add(cobyWingR);
+
+    cobyLight = new THREE.PointLight(0x39ff7a, 0.7, 3.2);
+    cobyLight.position.set(0,0.4,0);
+    cobyGroup.add(cobyLight);
+
+    var ring = new THREE.Mesh(new THREE.RingGeometry(0.22,0.34,20), new THREE.MeshBasicMaterial({color:0x39ff7a, transparent:true, opacity:0.35, side:THREE.DoubleSide}));
+    ring.rotation.x = -Math.PI/2;
+    ring.position.y = -0.28;
+    cobyGroup.add(ring);
+
+    scene.add(cobyGroup);
+  }
+
   function updateCobyVisual(dt){
+    var lv = level();
+    var n = lv.grid_size[0], m = lv.grid_size[1];
     var target = state.coby;
-    var dx = target.x - cobyVisual.x, dy = target.y - cobyVisual.y;
-    var dist = Math.sqrt(dx*dx+dy*dy);
+    var tx = worldX(target.x,n), tz = worldZ(target.y,m);
+    var dx = tx - cobyVisual.wx, dz = tz - cobyVisual.wz;
+    var dist = Math.sqrt(dx*dx+dz*dz);
     var moving = dist > 0.02;
-    var k = 1 - Math.pow(0.0018, dt); // exponential smoothing factor
-    cobyVisual.x += dx*k;
-    cobyVisual.y += dy*k;
+    var k = 1 - Math.pow(0.0018, dt);
+    cobyVisual.wx += dx*k;
+    cobyVisual.wz += dz*k;
 
     var targetAngle = DIRANGLE[target.dir];
     var da = targetAngle - cobyVisual.angle;
@@ -915,79 +1037,107 @@
     while (da < -Math.PI) da += Math.PI*2;
     cobyVisual.angle += da*k;
 
-    // squash/stretch pulse when a move nearly completes (little "hop")
     cobyVisual.hopPhase += dt*(moving?9:2);
-    cobyVisual.squash = moving ? Math.abs(Math.sin(cobyVisual.hopPhase))*0.16 : 0;
+    var bob = Math.sin(tAccum*5)*0.06 + (moving? Math.abs(Math.sin(cobyVisual.hopPhase))*0.09 : 0);
 
-    // trailing particle puffs while flying between cells
-    if (moving && Math.random() < 0.55){
-      var vp = isoPos(cobyVisual.x, cobyVisual.y);
-      spawnTrailPuff(vp.x, vp.y-14);
+    if (cobyGroup){
+      cobyGroup.position.set(cobyVisual.wx, 0.42+bob, cobyVisual.wz);
+      cobyGroup.rotation.y = -cobyVisual.angle;
+      var flap = Math.sin(tAccum*16);
+      if (cobyWingL) cobyWingL.rotation.z = flap*0.9;
+      if (cobyWingR) cobyWingR.rotation.z = -flap*0.9;
+    }
+
+    if (moving && Math.random() < 0.5){
+      spawnParticle3D(cobyVisual.wx+(Math.random()-0.5)*0.15, 0.35+bob, cobyVisual.wz+(Math.random()-0.5)*0.15,
+        (Math.random()-0.5)*0.3, 0.4+Math.random()*0.4, (Math.random()-0.5)*0.3, 0.4, 0x7ef7ff, 0);
     }
   }
 
-  function drawCoby(now){
-    var p = isoPos(cobyVisual.x, cobyVisual.y);
-    var bob = Math.sin(tAccum*5)*3;
-    var flap = Math.sin(tAccum*16);
-    var sq = cobyVisual.squash||0;
-    ctx.save();
-    ctx.translate(p.x, p.y-18+bob);
+  /* ============ PARTICLE SYSTEM (3D, Fase 1/Realismo: efectos con profundidad real) ============ */
+  function spawnParticle3D(x,y,z, vx,vy,vz, life, color, gravity){
+    if (particlePool.length >= MAX_PARTICLES){
+      var old = particlePool.shift();
+      scene.remove(old.mesh); old.mesh.material.dispose();
+    }
+    var mat = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:1});
+    var mesh = new THREE.Mesh(particleGeo, mat);
+    mesh.position.set(x,y,z);
+    scene.add(mesh);
+    particlePool.push({mesh:mesh, vx:vx,vy:vy,vz:vz, life:life, maxLife:life, gravity:gravity||0});
+  }
+  function clearParticles3D(){
+    while (particlePool.length){
+      var p = particlePool.pop();
+      scene.remove(p.mesh); p.mesh.material.dispose();
+    }
+  }
+  function updateParticles3D(dt){
+    for (var i=particlePool.length-1;i>=0;i--){
+      var p = particlePool[i];
+      p.life -= dt;
+      if (p.life<=0){ scene.remove(p.mesh); p.mesh.material.dispose(); particlePool.splice(i,1); continue; }
+      p.vy -= p.gravity*dt;
+      p.mesh.position.x += p.vx*dt;
+      p.mesh.position.y += p.vy*dt;
+      p.mesh.position.z += p.vz*dt;
+      p.mesh.material.opacity = Math.max(0, p.life/p.maxLife);
+    }
+  }
+  function spawnCrystalBurst(gx,gy){
+    var lv = level(); var n=lv.grid_size[0], m=lv.grid_size[1];
+    var x=worldX(gx,n), z=worldZ(gy,m);
+    for (var i=0;i<16;i++){
+      var a = Math.random()*Math.PI*2, el = Math.random()*Math.PI*0.5;
+      var sp = 1.0+Math.random()*1.4;
+      spawnParticle3D(x,0.55,z, Math.cos(a)*sp, Math.sin(el)*sp+0.6, Math.sin(a)*sp, 0.6+Math.random()*0.3, Math.random()>0.5?0x9dfcff:0xb45cff, 1.6);
+    }
+  }
+  function spawnErrorBurst(gx,gy){
+    var lv = level(); var n=lv.grid_size[0], m=lv.grid_size[1];
+    var x=worldX(gx,n), z=worldZ(gy,m);
+    for (var i=0;i<12;i++){
+      var a = Math.random()*Math.PI*2;
+      var sp = 0.8+Math.random()*1.2;
+      spawnParticle3D(x,0.4,z, Math.cos(a)*sp, 0.4+Math.random()*0.6, Math.sin(a)*sp, 0.4+Math.random()*0.2, Math.random()>0.4?0xff3b5c:0xff9a3c, 1.8);
+    }
+  }
+  function spawnVictoryConfetti(){
+    var lv = level(); var n=lv.grid_size[0], m=lv.grid_size[1];
+    var x=worldX(lv.goal.x,n), z=worldZ(lv.goal.y,m);
+    var colors=[0xffd166,0x39ff7a,0x29c6ff,0xb45cff,0xff9a3c];
+    for (var i=0;i<50;i++){
+      var a = Math.random()*Math.PI*2;
+      var sp = 1.2+Math.random()*1.6;
+      spawnParticle3D(x+(Math.random()-0.5)*0.6, 0.6, z+(Math.random()-0.5)*0.6,
+        Math.cos(a)*sp, 1.6+Math.random()*1.2, Math.sin(a)*sp, 1.3+Math.random()*0.6, colors[i%colors.length], 2.2);
+    }
+  }
 
-    // glow ring under coby
-    ctx.save();
-    ctx.globalAlpha=.35;
-    ctx.fillStyle='#39ff7a'; ctx.shadowColor='#39ff7a'; ctx.shadowBlur=18;
-    ctx.beginPath(); ctx.ellipse(0,20,16-sq*20,6+sq*8,0,0,Math.PI*2); ctx.fill();
-    ctx.restore();
+  /* ============ RENDER LOOP ============ */
+  function drawBoard(now){
+    if (!tPrev) tPrev = now;
+    var dt = Math.min(0.05,(now-tPrev)/1000); tPrev = now; tAccum += dt;
 
-    ctx.rotate(cobyVisual.angle);
-    ctx.scale(1+sq*0.5, 1-sq*0.35);
+    updateParticles3D(dt);
+    updateCobyVisual(dt);
 
-    // tail feathers (behind, opposite of beak)
-    ctx.save();
-    ctx.fillStyle = 'rgba(29,233,182,.75)';
-    ctx.shadowColor='#1de9b6'; ctx.shadowBlur=8;
-    ctx.beginPath();
-    ctx.moveTo(-8,0); ctx.lineTo(-19,-4+flap*1.5); ctx.lineTo(-15,0); ctx.lineTo(-19,4-flap*1.5); ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    if (levelGroup){
+      levelGroup.children.forEach(function(obj){
+        var t = obj.userData.type;
+        if (t==='lavaTip') obj.position.y = obj.userData.baseY + Math.sin(tAccum*4+obj.position.x)*0.06;
+        else if (t==='vortex') obj.rotation.z += dt*2.2;
+        else if (t==='vortexInner') obj.rotation.z -= dt*3.4;
+        else if (t==='goalIdol') obj.position.y = obj.userData.baseY + Math.sin(tAccum*2)*0.05;
+        else if (t==='crystal'){
+          obj.rotation.y += dt*0.8;
+          obj.position.y = obj.userData.baseY + Math.sin(tAccum*3+obj.userData.gx)*0.08;
+        }
+      });
+    }
 
-    // wings (layered feather arcs)
-    ctx.fillStyle='rgba(126,247,255,.85)';
-    ctx.shadowColor='#7ef7ff'; ctx.shadowBlur=10;
-    ctx.beginPath(); ctx.ellipse(-3, 3+flap*4, 10, 4.5, 0.55, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(-3, -3-flap*4, 10, 4.5, -0.55, 0, Math.PI*2); ctx.fill();
-    ctx.globalAlpha=.55;
-    ctx.beginPath(); ctx.ellipse(-6, 1.5+flap*3, 7, 3, 0.55, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(-6, -1.5-flap*3, 7, 3, -0.55, 0, Math.PI*2); ctx.fill();
-    ctx.globalAlpha=1;
-
-    // body (iridescent green-teal gradient)
-    var bg = ctx.createLinearGradient(-9,-6,9,6);
-    bg.addColorStop(0,'#0f9e5e'); bg.addColorStop(0.55,'#39ff7a'); bg.addColorStop(1,'#8bffc9');
-    ctx.fillStyle = bg; ctx.shadowColor='#39ff7a'; ctx.shadowBlur=14;
-    ctx.beginPath(); ctx.ellipse(0,0,9,6,0,0,Math.PI*2); ctx.fill();
-
-    // gorget (iridescent red throat patch)
-    ctx.fillStyle = '#ff3b5c'; ctx.shadowColor='#ff3b5c'; ctx.shadowBlur=8;
-    ctx.beginPath(); ctx.ellipse(4,1,3.2,2.4,0.2,0,Math.PI*2); ctx.fill();
-
-    // head
-    ctx.fillStyle = '#1fae64'; ctx.shadowBlur=6; ctx.shadowColor='#39ff7a';
-    ctx.beginPath(); ctx.ellipse(6,-1,3.4,3.2,0,0,Math.PI*2); ctx.fill();
-
-    // eye
-    ctx.fillStyle='#04140a'; ctx.shadowBlur=0;
-    ctx.beginPath(); ctx.arc(7,-2.4,0.9,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#eafff2';
-    ctx.beginPath(); ctx.arc(7.3,-2.7,0.35,0,Math.PI*2); ctx.fill();
-
-    // beak (points toward local +x, i.e. rotated 'forward')
-    ctx.fillStyle='#ffd166'; ctx.shadowBlur=6; ctx.shadowColor='#ffd166';
-    ctx.beginPath();
-    ctx.moveTo(9,-1); ctx.lineTo(17,-1); ctx.lineTo(9,0.6); ctx.closePath(); ctx.fill();
-    ctx.restore();
+    renderer.render(scene, camera);
+    rafId = requestAnimationFrame(drawBoard);
   }
 
   /* ============ TOAST ============ */
@@ -1038,9 +1188,10 @@
     state.coby = {x:lv.start.x,y:lv.start.y,dir:lv.start.dir};
     state.collected = {};
     renderAll();
-    cobyVisual.x = lv.start.x; cobyVisual.y = lv.start.y;
+    var n = lv.grid_size[0], m = lv.grid_size[1];
+    cobyVisual.wx = worldX(lv.start.x,n); cobyVisual.wz = worldZ(lv.start.y,m);
     cobyVisual.angle = DIRANGLE[lv.start.dir];
-    particles.length = 0;
+    clearParticles3D();
 
     var moves = expandSteps();
     state.running = true;
@@ -1173,25 +1324,47 @@
       wrap.appendChild(card);
     });
   }
-  function openLevelModal(){ renderLevelCards(); document.getElementById('levelModal').classList.add('show'); }
+  function openLevelModal(){ sfxClick(); renderLevelCards(); document.getElementById('levelModal').classList.add('show'); }
   document.getElementById('btnLevels').addEventListener('click', openLevelModal);
   document.getElementById('btnLevels2').addEventListener('click', openLevelModal);
   document.getElementById('closeLevelModal').addEventListener('click', function(){
+    sfxClick();
     document.getElementById('levelModal').classList.remove('show');
+  });
+  document.getElementById('btnMute').addEventListener('click', function(){
+    ac(); // ensure context exists on first gesture
+    setMuted(!muted);
   });
 
   /* ============ BUTTONS ============ */
-  document.getElementById('btnExec').addEventListener('click', execute);
+  document.getElementById('btnExec').addEventListener('click', function(){ sfxClick(); execute(); });
   document.getElementById('btnReset').addEventListener('click', function(){
     if (state.running) return;
+    sfxClick();
     resetLevelState(true);
   });
 
   /* ============ INIT ============ */
   function init(){
-    resizeCanvas();
-    loadLevel(0, true);
-    rafId = requestAnimationFrame(drawBoard);
+    if (typeof THREE === 'undefined'){
+      var t = document.getElementById('toast');
+      if (t){ t.textContent = 'No se pudo cargar el motor 3D (Three.js). Revisa tu conexión y recarga la página.'; t.className='feedback-toast show toast-error'; }
+      console.error('Tepuy Code: THREE no está definido — falló la carga del script de Three.js.');
+      return;
+    }
+    try{
+      initThree();
+      buildCoby();
+      resizeCanvas();
+      loadLevel(0, true);
+      rafId = requestAnimationFrame(drawBoard);
+    }catch(err){
+      console.error('Tepuy Code: error inicializando la escena 3D:', err);
+      var t2 = document.getElementById('toast');
+      if (t2){ t2.textContent = 'Ocurrió un error cargando el tablero 3D. Revisa la consola.'; t2.className='feedback-toast show toast-error'; }
+    }
+    var mb = document.getElementById('btnMute');
+    if (mb) mb.textContent = muted ? '🔇' : '🔊';
   }
   window.addEventListener('load', init);
   if (document.readyState==='complete') init();
