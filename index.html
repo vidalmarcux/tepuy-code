@@ -753,7 +753,7 @@
   var rafId = null, tPrev = 0, tAccum = 0;
   var tileSize = 2.15;
   var levelGroup = null;
-  var cobyGroup = null, cobyWingL, cobyWingR, cobyLight;
+  var cobyGroup = null, cobyWingL, cobyWingR, cobyLight, cobyArrow;
   var cameraTarget = new THREE.Vector3(0,0.3,0);
   var cameraDistance = 15, defaultCameraDistance = 15;
   var cameraAzimuth = Math.PI*0.25, defaultAzimuth = Math.PI*0.25;
@@ -762,6 +762,7 @@
   var particlePool = [];
   var MAX_PARTICLES = 140;
   var particleGeo;
+  var platformBobY = 0;
 
   function obstacleAt(gx,gy){
     var lv = level();
@@ -804,18 +805,84 @@
     moon.shadow.camera.far=30;
     scene.add(moon);
 
-    var groundGeo = new THREE.PlaneGeometry(60,60);
-    var groundMat = new THREE.MeshStandardMaterial({color:0x050b16, roughness:0.95, metalness:0.05});
-    var ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI/2;
-    ground.position.y = -0.35;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
     particleGeo = new THREE.SphereGeometry(0.055, 6, 6);
 
     updateCameraPosition();
     setupBoardInteraction();
+  }
+
+  /* ---- procedural textures (canvas-based, no external assets) ---- */
+  function makeGridTexture(hex){
+    var c = document.createElement('canvas'); c.width=c.height=128;
+    var g = c.getContext('2d');
+    g.fillStyle = 'rgba(0,0,0,0)'; g.fillRect(0,0,128,128);
+    g.strokeStyle = hex; g.globalAlpha = 0.55; g.lineWidth = 2;
+    for (var i=0;i<=4;i++){
+      g.beginPath(); g.moveTo(0,i*32); g.lineTo(128,i*32); g.stroke();
+      g.beginPath(); g.moveTo(i*32,0); g.lineTo(i*32,128); g.stroke();
+    }
+    g.globalAlpha = 0.9; g.lineWidth = 3;
+    g.strokeRect(2,2,124,124);
+    var tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }
+  function makeCrackTexture(){
+    var c = document.createElement('canvas'); c.width=c.height=128;
+    var g = c.getContext('2d');
+    g.clearRect(0,0,128,128);
+    g.strokeStyle = '#ff5b76'; g.lineWidth = 3; g.lineCap='round';
+    function branch(x,y,ang,len,depth){
+      if (depth<=0 || len<4) return;
+      var x2 = x+Math.cos(ang)*len, y2 = y+Math.sin(ang)*len;
+      g.globalAlpha = 0.35+0.55*(depth/4);
+      g.beginPath(); g.moveTo(x,y); g.lineTo(x2,y2); g.stroke();
+      branch(x2,y2, ang+(Math.random()*0.9-0.45), len*0.68, depth-1);
+      if (Math.random()>0.4) branch(x2,y2, ang-(Math.random()*0.9-0.45), len*0.55, depth-1);
+    }
+    branch(64,64,-Math.PI/2,26,4);
+    branch(64,64,Math.PI/2,26,4);
+    branch(64,64,0,26,4);
+    branch(64,64,Math.PI,26,4);
+    var tex = new THREE.CanvasTexture(c);
+    return tex;
+  }
+  function makeTextSprite(text, colorCss){
+    var c = document.createElement('canvas'); c.width=256; c.height=96;
+    var g = c.getContext('2d');
+    g.clearRect(0,0,256,96);
+    g.font='700 40px Orbitron, sans-serif';
+    g.textAlign='center'; g.textBaseline='middle';
+    g.shadowColor = colorCss; g.shadowBlur = 18;
+    g.fillStyle = colorCss;
+    g.fillText(text, 128, 50);
+    var tex = new THREE.CanvasTexture(c);
+    var mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthWrite:false});
+    var sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.7,0.64,1);
+    return sprite;
+  }
+
+  var dragging = false;
+  var ringPool = [];
+  function spawnTilePulse(x,z,color){
+    var mat = new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.8, side:THREE.DoubleSide});
+    var mesh = new THREE.Mesh(new THREE.RingGeometry(0.05,0.16,24), mat);
+    mesh.rotation.x = -Math.PI/2;
+    mesh.position.set(x,0.09,z);
+    scene.add(mesh);
+    ringPool.push({mesh:mesh, life:0.5, maxLife:0.5});
+  }
+  function updateRings(dt){
+    for (var i=ringPool.length-1;i>=0;i--){
+      var r = ringPool[i];
+      r.life -= dt;
+      if (r.life<=0){ scene.remove(r.mesh); r.mesh.material.dispose(); r.mesh.geometry.dispose(); ringPool.splice(i,1); continue; }
+      var t = 1-(r.life/r.maxLife);
+      var s = 1+t*7;
+      r.mesh.scale.set(s,s,s);
+      r.mesh.material.opacity = 0.8*(1-t);
+    }
   }
 
   function updateCameraPosition(){
@@ -838,7 +905,7 @@
   function resetView(){ cameraDistance=defaultCameraDistance; cameraAzimuth=defaultAzimuth; cameraPolar=defaultPolar; updateCameraPosition(); }
 
   function setupBoardInteraction(){
-    var dragging=false, lastX=0, lastY=0;
+    var lastX=0, lastY=0;
     canvas.style.cursor='grab';
     canvas.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId); canvas.style.cursor='grabbing'; });
     canvas.addEventListener('pointermove', function(e){
@@ -882,18 +949,42 @@
     updateCameraPosition();
 
     var tileGeo = new THREE.BoxGeometry(tileSize*0.9, 0.16, tileSize*0.9);
+    var pathTex = makeGridTexture('#39ff7a');
+    var crackTex = makeCrackTexture();
+
+    // floating rock base beneath the platform (irregular chunk, "floating tepuy" feel)
+    var baseW = n*tileSize+0.6, baseD = m*tileSize+0.6;
+    var rockGeo = new THREE.CylinderGeometry(Math.max(baseW,baseD)*0.42, Math.max(baseW,baseD)*0.3, 1.4, 6, 1);
+    var posAttr = rockGeo.attributes.position;
+    for (var vi=0; vi<posAttr.count; vi++){
+      if (posAttr.getY(vi) < 0){
+        posAttr.setX(vi, posAttr.getX(vi)*(1+Math.random()*0.25));
+        posAttr.setZ(vi, posAttr.getZ(vi)*(1+Math.random()*0.25));
+        posAttr.setY(vi, posAttr.getY(vi)*(1+Math.random()*0.6));
+      }
+    }
+    rockGeo.computeVertexNormals();
+    var rock = new THREE.Mesh(rockGeo, new THREE.MeshStandardMaterial({color:0x1a1428, roughness:0.95, metalness:0.05, emissive:0x0a0614, emissiveIntensity:0.4}));
+    rock.userData.ownGeo = true;
+    rock.scale.set(baseW/(Math.max(baseW,baseD)*0.84), 1, baseD/(Math.max(baseW,baseD)*0.84));
+    rock.position.y = -0.78;
+    rock.castShadow = true; rock.receiveShadow = true;
+    levelGroup.add(rock);
+
     for (var gy=0; gy<m; gy++){
       for (var gx=0; gx<n; gx++){
         var obs = obstacleAt(gx,gy);
         var isGoal = (gx===lv.goal.x && gy===lv.goal.y);
-        var color, emissive, edgeColor;
+        var color, emissive, edgeColor, useMap=null;
         if (obs){
           if (obs.type==='volcano'){ color=0x3a1420; emissive=0x4a0f18; edgeColor=0xff3b5c; }
           else { color=0x2a1640; emissive=0x2a0f45; edgeColor=0xb45cff; }
         } else if (isGoal){ color=0x3a2f10; emissive=0x2a1f08; edgeColor=0xffd166; }
-        else { color=0x0d2a24; emissive=0x061a16; edgeColor=0x39ff7a; }
+        else { color=0x0d2a24; emissive=0x061a16; edgeColor=0x39ff7a; useMap=pathTex; }
 
-        var mat = new THREE.MeshStandardMaterial({color:color, emissive:emissive, roughness:0.6, metalness:0.2});
+        var matOpts = {color:color, emissive:emissive, roughness:0.6, metalness:0.2};
+        if (useMap){ matOpts.emissiveMap = useMap; matOpts.emissive = new THREE.Color(0x39ff7a); matOpts.emissiveIntensity = 0.35; }
+        var mat = new THREE.MeshStandardMaterial(matOpts);
         var tile = new THREE.Mesh(tileGeo, mat);
         tile.userData.ownGeo = false;
         tile.position.set(worldX(gx,n), 0, worldZ(gy,m));
@@ -916,6 +1007,12 @@
             tip.userData.ownGeo = true; tip.userData.type='lavaTip'; tip.userData.baseY = 1.05;
             tip.position.set(tile.position.x, 1.05, tile.position.z);
             levelGroup.add(tip);
+            var crackPlane = new THREE.Mesh(new THREE.PlaneGeometry(tileSize*0.86,tileSize*0.86),
+              new THREE.MeshBasicMaterial({map:crackTex, transparent:true, opacity:0.9, side:THREE.DoubleSide, depthWrite:false}));
+            crackPlane.userData.ownGeo = false;
+            crackPlane.rotation.x = -Math.PI/2;
+            crackPlane.position.set(tile.position.x, 0.095, tile.position.z);
+            levelGroup.add(crackPlane);
           } else {
             var tor = new THREE.Mesh(new THREE.TorusGeometry(0.4,0.09,8,20), new THREE.MeshStandardMaterial({color:0xb45cff, emissive:0xb45cff, emissiveIntensity:1.1, roughness:0.3}));
             tor.userData.ownGeo = true; tor.userData.type='vortex';
@@ -947,6 +1044,10 @@
           var goalLight = new THREE.PointLight(0xffd166, 1.1, 5.5);
           goalLight.position.set(tile.position.x, 1.6, tile.position.z);
           levelGroup.add(goalLight);
+          var metaLabel = makeTextSprite('META', '#ffd166');
+          metaLabel.position.set(tile.position.x, 1.55, tile.position.z);
+          metaLabel.userData.type = 'metaLabel'; metaLabel.userData.baseY = 1.55;
+          levelGroup.add(metaLabel);
         }
 
         var cr = crystalAt(gx,gy);
@@ -1016,6 +1117,11 @@
     ring.position.y = -0.28;
     cobyGroup.add(ring);
 
+    cobyArrow = new THREE.Mesh(new THREE.ConeGeometry(0.07,0.16,4), new THREE.MeshBasicMaterial({color:0x9dfcff, transparent:true, opacity:0.6}));
+    cobyArrow.rotation.z = -Math.PI/2;
+    cobyArrow.position.set(0.85,0,0);
+    cobyGroup.add(cobyArrow);
+
     scene.add(cobyGroup);
   }
 
@@ -1041,11 +1147,12 @@
     var bob = Math.sin(tAccum*5)*0.06 + (moving? Math.abs(Math.sin(cobyVisual.hopPhase))*0.09 : 0);
 
     if (cobyGroup){
-      cobyGroup.position.set(cobyVisual.wx, 0.42+bob, cobyVisual.wz);
+      cobyGroup.position.set(cobyVisual.wx, 0.42+bob+platformBobY, cobyVisual.wz);
       cobyGroup.rotation.y = -cobyVisual.angle;
       var flap = Math.sin(tAccum*16);
       if (cobyWingL) cobyWingL.rotation.z = flap*0.9;
       if (cobyWingR) cobyWingR.rotation.z = -flap*0.9;
+      if (cobyArrow) cobyArrow.material.opacity = 0.45+Math.sin(tAccum*6)*0.25;
     }
 
     if (moving && Math.random() < 0.5){
@@ -1070,6 +1177,10 @@
     while (particlePool.length){
       var p = particlePool.pop();
       scene.remove(p.mesh); p.mesh.material.dispose();
+    }
+    while (ringPool.length){
+      var r = ringPool.pop();
+      scene.remove(r.mesh); r.mesh.material.dispose(); r.mesh.geometry.dispose();
     }
   }
   function updateParticles3D(dt){
@@ -1120,20 +1231,30 @@
     var dt = Math.min(0.05,(now-tPrev)/1000); tPrev = now; tAccum += dt;
 
     updateParticles3D(dt);
+    platformBobY = Math.sin(tAccum*0.55)*0.12;
     updateCobyVisual(dt);
+    updateRings(dt);
 
     if (levelGroup){
+      levelGroup.position.y = platformBobY;
+      levelGroup.rotation.y = Math.sin(tAccum*0.35)*0.015;
       levelGroup.children.forEach(function(obj){
         var t = obj.userData.type;
         if (t==='lavaTip') obj.position.y = obj.userData.baseY + Math.sin(tAccum*4+obj.position.x)*0.06;
         else if (t==='vortex') obj.rotation.z += dt*2.2;
         else if (t==='vortexInner') obj.rotation.z -= dt*3.4;
         else if (t==='goalIdol') obj.position.y = obj.userData.baseY + Math.sin(tAccum*2)*0.05;
+        else if (t==='metaLabel') obj.position.y = obj.userData.baseY + Math.sin(tAccum*2.4)*0.06;
         else if (t==='crystal'){
           obj.rotation.y += dt*0.8;
           obj.position.y = obj.userData.baseY + Math.sin(tAccum*3+obj.userData.gx)*0.08;
         }
       });
+    }
+
+    if (!dragging){
+      cameraAzimuth += dt*0.035;
+      updateCameraPosition();
     }
 
     renderer.render(scene, camera);
@@ -1240,6 +1361,8 @@
         }
         c.x = nx; c.y = ny;
         sfxStep();
+        var lvn = level();
+        spawnTilePulse(worldX(c.x,lvn.grid_size[0]), worldZ(c.y,lvn.grid_size[1]), 0x39ff7a);
         var cr = crystalAt(c.x,c.y);
         if (cr && !state.collected[c.x+','+c.y]){
           state.collected[c.x+','+c.y] = true;
