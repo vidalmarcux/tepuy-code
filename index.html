@@ -404,6 +404,7 @@
   ];
   // dir: 0=Norte(-y) 1=Este(+x) 2=Sur(+y) 3=Oeste(-x)
   var DIRV = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
+  var DIRANGLE = [-Math.PI/2, 0, Math.PI/2, Math.PI];
 
   /* ============ STATE ============ */
   var state = {
@@ -415,6 +416,11 @@
     running: false,
     animFrame: 0
   };
+  // Smoothed visual position/rotation of Coby, interpolated toward state.coby every frame
+  // (Fase 1: animacion fluida de vuelo y giro)
+  var cobyVisual = { x:0, y:0, angle:0, hopPhase:0, squash:0 };
+  var particles = []; // {x,y,vx,vy,life,maxLife,size,color,glow,type}
+  var MAX_PARTICLES = 240;
 
   var PROGRESS_KEY = 'tepuyCodeProgress_v1';
   function loadProgress(){
@@ -434,6 +440,9 @@
     state.running = false;
     recomputeEnergy();
     renderAll();
+    cobyVisual.x = lv.start.x; cobyVisual.y = lv.start.y;
+    cobyVisual.angle = DIRANGLE[lv.start.dir];
+    particles.length = 0;
   }
 
   function loadLevel(idx, clearSteps){
@@ -581,6 +590,89 @@
     return gx>=0 && gy>=0 && gx<lv.grid_size[0] && gy<lv.grid_size[1];
   }
 
+  /* ============ PARTICLE SYSTEM (Fase 1: efectos de particulas neon) ============ */
+  function spawnParticle(p){
+    if (particles.length >= MAX_PARTICLES) particles.shift();
+    particles.push(p);
+  }
+  function spawnCrystalBurst(gx,gy){
+    var p = isoPos(gx,gy);
+    for (var i=0;i<16;i++){
+      var a = (Math.PI*2/16)*i + Math.random()*0.3;
+      var sp = 40+Math.random()*60;
+      spawnParticle({
+        x:p.x, y:p.y-16, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp*0.6-20,
+        life:0.55+Math.random()*0.25, maxLife:0.8, size:2+Math.random()*2,
+        color: Math.random()>.5 ? '#9dfcff' : '#b45cff', glow:12
+      });
+    }
+  }
+  function spawnErrorBurst(gx,gy){
+    var p = isoPos(gx,gy);
+    for (var i=0;i<12;i++){
+      var a = Math.random()*Math.PI*2;
+      var sp = 30+Math.random()*50;
+      spawnParticle({
+        x:p.x, y:p.y-6, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp*0.5-10,
+        life:0.4+Math.random()*0.2, maxLife:0.6, size:2+Math.random()*2.5,
+        color: Math.random()>.4 ? '#ff3b5c' : '#ff9a3c', glow:14
+      });
+    }
+  }
+  function spawnVictoryConfetti(){
+    var lv = level();
+    var p = isoPos(lv.goal.x, lv.goal.y);
+    var colors = ['#ffd166','#39ff7a','#29c6ff','#b45cff','#ff9a3c'];
+    for (var i=0;i<50;i++){
+      var a = Math.PI + Math.random()*Math.PI;
+      var sp = 60+Math.random()*90;
+      spawnParticle({
+        x:p.x+(Math.random()-0.5)*20, y:p.y-14, vx:Math.cos(a)*sp*0.6, vy:-Math.abs(Math.sin(a)*sp)-40,
+        life:1.1+Math.random()*0.6, maxLife:1.7, size:2.5+Math.random()*2.5,
+        color: colors[i%colors.length], glow:10, gravity:140
+      });
+    }
+  }
+  function spawnTrailPuff(x,y){
+    spawnParticle({
+      x:x+(Math.random()-0.5)*6, y:y+(Math.random()-0.5)*4, vx:(Math.random()-0.5)*8, vy:-10-Math.random()*10,
+      life:0.35+Math.random()*0.2, maxLife:0.5, size:1.5+Math.random()*1.5,
+      color:'#7ef7ff', glow:8
+    });
+  }
+  function spawnEmber(gx,gy){
+    var p = isoPos(gx,gy);
+    spawnParticle({
+      x:p.x+(Math.random()-0.5)*14, y:p.y-4, vx:(Math.random()-0.5)*6, vy:-22-Math.random()*18,
+      life:0.7+Math.random()*0.4, maxLife:1.1, size:1.5+Math.random()*1.8,
+      color: Math.random()>.5 ? '#ff9a3c' : '#ff3b5c', glow:10
+    });
+  }
+  function updateParticles(dt){
+    for (var i=particles.length-1;i>=0;i--){
+      var pt = particles[i];
+      pt.life -= dt;
+      if (pt.life<=0){ particles.splice(i,1); continue; }
+      pt.x += pt.vx*dt;
+      pt.y += pt.vy*dt;
+      if (pt.gravity) pt.vy += pt.gravity*dt;
+    }
+  }
+  function drawParticles(){
+    particles.forEach(function(pt){
+      var a = Math.max(0, pt.life/pt.maxLife);
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.fillStyle = pt.color;
+      ctx.shadowColor = pt.color;
+      ctx.shadowBlur = pt.glow||8;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.size*a+0.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
   function drawBoard(now){
     if (!tPrev) tPrev = now;
     var dt = (now-tPrev)/1000; tPrev = now; tAccum += dt;
@@ -588,6 +680,8 @@
     var lv = level();
     var cw = canvas.width/devicePixelRatio, ch = canvas.height/devicePixelRatio;
     ctx.clearRect(0,0,cw,ch);
+    updateParticles(dt);
+    updateCobyVisual(dt);
 
     var n = lv.grid_size[0], m = lv.grid_size[1];
     var cells = [];
@@ -635,9 +729,11 @@
           ctx.fillStyle = '#ff3b5c';
           ctx.beginPath(); ctx.arc(0,-13+Math.sin(tAccum*4)*2,3.5,0,Math.PI*2); ctx.fill();
           ctx.shadowColor='#ff3b5c'; ctx.shadowBlur=14; ctx.fill();
+          if (Math.random()<0.06 && particles.length<MAX_PARTICLES) spawnEmber(cell.gx,cell.gy);
         } else {
           ctx.strokeStyle = '#b45cff'; ctx.lineWidth=2; ctx.shadowColor='#b45cff'; ctx.shadowBlur=10;
           ctx.beginPath(); ctx.arc(0,0,9+Math.sin(tAccum*3)*2,tAccum*2, tAccum*2+4.5); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0,0,5+Math.sin(tAccum*3+1.5)*1.5,tAccum*2.6+2, tAccum*2.6+4.6); ctx.stroke();
         }
         ctx.restore();
       }
@@ -669,47 +765,110 @@
         ctx.beginPath();
         ctx.moveTo(0,-10); ctx.lineTo(7,0); ctx.lineTo(0,10); ctx.lineTo(-7,0); ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(0,10); ctx.stroke();
         ctx.restore();
+        if (Math.random()<0.02 && particles.length<MAX_PARTICLES){
+          spawnParticle({x:p.x+(Math.random()-0.5)*6,y:p.y-16+bobc,vx:(Math.random()-0.5)*8,vy:-14-Math.random()*10,
+            life:0.5,maxLife:0.5,size:1.3,color:'#eafcff',glow:8});
+        }
       }
     });
 
     drawCoby(now);
+    drawParticles();
     rafId = requestAnimationFrame(drawBoard);
   }
 
+  /* Smoothly interpolate cobyVisual toward the logical state.coby target each frame,
+     giving fluid flight + turning instead of instant teleport (Fase 1). */
+  function updateCobyVisual(dt){
+    var target = state.coby;
+    var dx = target.x - cobyVisual.x, dy = target.y - cobyVisual.y;
+    var dist = Math.sqrt(dx*dx+dy*dy);
+    var moving = dist > 0.02;
+    var k = 1 - Math.pow(0.0018, dt); // exponential smoothing factor
+    cobyVisual.x += dx*k;
+    cobyVisual.y += dy*k;
+
+    var targetAngle = DIRANGLE[target.dir];
+    var da = targetAngle - cobyVisual.angle;
+    while (da > Math.PI) da -= Math.PI*2;
+    while (da < -Math.PI) da += Math.PI*2;
+    cobyVisual.angle += da*k;
+
+    // squash/stretch pulse when a move nearly completes (little "hop")
+    cobyVisual.hopPhase += dt*(moving?9:2);
+    cobyVisual.squash = moving ? Math.abs(Math.sin(cobyVisual.hopPhase))*0.16 : 0;
+
+    // trailing particle puffs while flying between cells
+    if (moving && Math.random() < 0.55){
+      var vp = isoPos(cobyVisual.x, cobyVisual.y);
+      spawnTrailPuff(vp.x, vp.y-14);
+    }
+  }
+
   function drawCoby(now){
-    var p = isoPos(state.coby.x, state.coby.y);
+    var p = isoPos(cobyVisual.x, cobyVisual.y);
     var bob = Math.sin(tAccum*5)*3;
-    var flap = Math.sin(tAccum*14);
+    var flap = Math.sin(tAccum*16);
+    var sq = cobyVisual.squash||0;
     ctx.save();
     ctx.translate(p.x, p.y-18+bob);
-    var angle = [ -Math.PI/2, 0, Math.PI/2, Math.PI ][state.coby.dir];
+
     // glow ring under coby
     ctx.save();
     ctx.globalAlpha=.35;
     ctx.fillStyle='#39ff7a'; ctx.shadowColor='#39ff7a'; ctx.shadowBlur=18;
-    ctx.beginPath(); ctx.ellipse(0,20,16,6,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0,20,16-sq*20,6+sq*8,0,0,Math.PI*2); ctx.fill();
     ctx.restore();
 
-    ctx.rotate(angle);
-    // wings
+    ctx.rotate(cobyVisual.angle);
+    ctx.scale(1+sq*0.5, 1-sq*0.35);
+
+    // tail feathers (behind, opposite of beak)
+    ctx.save();
+    ctx.fillStyle = 'rgba(29,233,182,.75)';
+    ctx.shadowColor='#1de9b6'; ctx.shadowBlur=8;
+    ctx.beginPath();
+    ctx.moveTo(-8,0); ctx.lineTo(-19,-4+flap*1.5); ctx.lineTo(-15,0); ctx.lineTo(-19,4-flap*1.5); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // wings (layered feather arcs)
     ctx.fillStyle='rgba(126,247,255,.85)';
     ctx.shadowColor='#7ef7ff'; ctx.shadowBlur=10;
-    ctx.beginPath();
-    ctx.ellipse(-4, 2+flap*3, 9, 4, 0.5, 0, Math.PI*2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(-4, -2-flap*3, 9, 4, -0.5, 0, Math.PI*2);
-    ctx.fill();
-    // body
-    var bg = ctx.createLinearGradient(-8,0,8,0);
-    bg.addColorStop(0,'#1fae64'); bg.addColorStop(1,'#39ff7a');
+    ctx.beginPath(); ctx.ellipse(-3, 3+flap*4, 10, 4.5, 0.55, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-3, -3-flap*4, 10, 4.5, -0.55, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha=.55;
+    ctx.beginPath(); ctx.ellipse(-6, 1.5+flap*3, 7, 3, 0.55, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-6, -1.5-flap*3, 7, 3, -0.55, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+
+    // body (iridescent green-teal gradient)
+    var bg = ctx.createLinearGradient(-9,-6,9,6);
+    bg.addColorStop(0,'#0f9e5e'); bg.addColorStop(0.55,'#39ff7a'); bg.addColorStop(1,'#8bffc9');
     ctx.fillStyle = bg; ctx.shadowColor='#39ff7a'; ctx.shadowBlur=14;
     ctx.beginPath(); ctx.ellipse(0,0,9,6,0,0,Math.PI*2); ctx.fill();
+
+    // gorget (iridescent red throat patch)
+    ctx.fillStyle = '#ff3b5c'; ctx.shadowColor='#ff3b5c'; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.ellipse(4,1,3.2,2.4,0.2,0,Math.PI*2); ctx.fill();
+
+    // head
+    ctx.fillStyle = '#1fae64'; ctx.shadowBlur=6; ctx.shadowColor='#39ff7a';
+    ctx.beginPath(); ctx.ellipse(6,-1,3.4,3.2,0,0,Math.PI*2); ctx.fill();
+
+    // eye
+    ctx.fillStyle='#04140a'; ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(7,-2.4,0.9,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#eafff2';
+    ctx.beginPath(); ctx.arc(7.3,-2.7,0.35,0,Math.PI*2); ctx.fill();
+
     // beak (points toward local +x, i.e. rotated 'forward')
     ctx.fillStyle='#ffd166'; ctx.shadowBlur=6; ctx.shadowColor='#ffd166';
     ctx.beginPath();
-    ctx.moveTo(8,0); ctx.lineTo(16,-1.5); ctx.lineTo(16,1.5); ctx.closePath(); ctx.fill();
+    ctx.moveTo(9,-1); ctx.lineTo(17,-1); ctx.lineTo(9,0.6); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
@@ -761,6 +920,9 @@
     state.coby = {x:lv.start.x,y:lv.start.y,dir:lv.start.dir};
     state.collected = {};
     renderAll();
+    cobyVisual.x = lv.start.x; cobyVisual.y = lv.start.y;
+    cobyVisual.angle = DIRANGLE[lv.start.dir];
+    particles.length = 0;
 
     var moves = expandSteps();
     state.running = true;
@@ -789,6 +951,7 @@
         var nx = c.x+v.x, ny = c.y+v.y;
         if (!inBounds(nx,ny) || obstacleAt(nx,ny)){
           sfxError();
+          spawnErrorBurst(nx,ny);
           showToast('¡Coby chocó con un obstáculo! Ajusta tu algoritmo.','error');
           state.running = false;
           setEditingEnabled(true);
@@ -800,6 +963,7 @@
         if (cr && !state.collected[c.x+','+c.y]){
           state.collected[c.x+','+c.y] = true;
           sfxCrystal();
+          spawnCrystalBurst(c.x,c.y);
         }
         if (c.x===lv.goal.x && c.y===lv.goal.y){
           var got = Object.keys(state.collected).length;
@@ -823,6 +987,7 @@
   /* ============ VICTORY ============ */
   function onVictory(){
     sfxVictory();
+    spawnVictoryConfetti();
     var lv = level();
     var used = state.steps.length;
     var stars = 1;
