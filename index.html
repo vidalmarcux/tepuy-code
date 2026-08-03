@@ -556,7 +556,11 @@
       sc.style.width  = W + 'px';
       sc.style.height = H + 'px';
     }
-    window.addEventListener('resize', resize);
+    function resizeBoth(){
+      resize();
+      if (typeof resizeCanvas === 'function') resizeCanvas();
+    }
+    window.addEventListener('resize', resizeBoth);
     resize();
 
     /* ---- helper: draw a rounded cloud puff ---- */
@@ -1318,8 +1322,8 @@
       obstacles:[{x:1,y:6,type:'volcano'},{x:1,y:2,type:'volcano'},{x:5,y:5,type:'vortex'},{x:6,y:4,type:'vortex'},{x:3,y:3,type:'volcano'},{x:2,y:1,type:'vortex'}],
       allowed_blocks:["AVANZAR","GIRAR_IZQ","GIRAR_DER","REPETIR_2","SI_OBSTACULO"], max_blocks:20 }
   ];
-  var DIRV = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
   var DIRANGLE = [-Math.PI/2, 0, Math.PI/2, Math.PI];
+  var DIRV = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
   /* ============ STATE ============ */
   var state = { levelIndex:0, steps:[], coby:{x:0,y:0,dir:1}, collected:{}, energy:100, running:false };
@@ -1461,7 +1465,7 @@
     canvas.style.width = r.width+'px'; canvas.style.height = r.height+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  window.addEventListener('resize', resizeCanvas);
+  // Note: resize is triggered by SceneryEngine's resizeBoth() — no duplicate listener needed here
 
   function viewSize(){
     var dpr = Math.min(window.devicePixelRatio||1, 2);
@@ -2573,12 +2577,27 @@
   function loadCustomLevel(ci){
     var arr = loadCustomLevels();
     if (!arr[ci]) return;
-    // inject as a temporary level
-    var lv = arr[ci];
+    var lv = JSON.parse(JSON.stringify(arr[ci])); // deep clone to avoid mutation
+    // Ensure required fields have defaults
+    if (!lv.allowed_blocks) lv.allowed_blocks = ['AVANZAR','GIRAR_IZQ','GIRAR_DER','REPETIR_2','SI_OBSTACULO'];
+    if (!lv.story) lv.story = 'Nivel personalizado. ¡Guía a Coby hasta el Faro!';
+    // Push, load (synchronous read of LEVELS array), then pop safely
     LEVELS.push(lv);
-    loadLevel(LEVELS.length-1, true);
-    // remove the temp after loading (clean up next time)
-    LEVELS.pop();
+    var idx = LEVELS.length - 1;
+    state.levelIndex = idx;   // set index BEFORE buildLevelScene reads it
+    buildLevelScene();
+    resetLevelState(true);
+    // Populate UI labels
+    document.getElementById('hudLevelTitle').textContent = ('PERSONALIZADO: '+lv.name).toUpperCase().slice(0,34);
+    document.getElementById('hudLevelRegion').textContent = lv.region || 'Mi nivel';
+    document.getElementById('hudLevelShort').textContent = lv.name;
+    document.getElementById('missionText').innerHTML = lv.story;
+    document.getElementById('missionCrystals').textContent = lv.required_crystals;
+    document.getElementById('missionMaxBlocks').textContent = lv.max_blocks;
+    document.getElementById('missionGrid').textContent = lv.grid_size[0]+'×'+lv.grid_size[1];
+    var bn = {AVANZAR:'Avanzar',GIRAR_IZQ:'Girar Izq.',GIRAR_DER:'Girar Der.',REPETIR_2:'Repetir',SI_OBSTACULO:'Si obstáculo'};
+    document.getElementById('missionBlocks').textContent = lv.allowed_blocks.map(function(b){return bn[b]||b;}).join(', ');
+    LEVELS.pop(); // safe to pop now — all reads complete
   }
 
   function openLevelModal(){ sfxClick(); renderLevelCards(); document.getElementById('levelModal').classList.add('show'); }
@@ -2628,6 +2647,7 @@
     document.getElementById('crJsonWrap').style.display='none';
     document.getElementById('crValidation').style.display='none';
     document.getElementById('creatorModal').classList.add('show');
+    if (!crRafId) crRafId = requestAnimationFrame(drawCreatorBoard);
   }
 
   function initCreatorGrid(){
@@ -2689,7 +2709,11 @@
     return { x: ox+(gx-gy)*CR_TW/2, y: oy+(gx+gy)*CR_TH/2 };
   }
 
+  var crRafId = null;
   function drawCreatorBoard(){
+    if (!document.getElementById('creatorModal').classList.contains('show')){
+      crRafId = null; return; // stop the loop when modal is hidden
+    }
     var W = crCanvas.width/(window.devicePixelRatio||1);
     var H = crCanvas.height/(window.devicePixelRatio||1);
     crCtx.clearRect(0,0,W,H);
@@ -2759,7 +2783,7 @@
       }
       crCtx.restore();
     });
-    requestAnimationFrame(drawCreatorBoard);
+    crRafId = requestAnimationFrame(drawCreatorBoard);
   }
 
   function crCanvasToGrid(ex, ey){
@@ -2874,12 +2898,23 @@
   document.getElementById('crTest').addEventListener('click', function(){
     var errs=validateCreator();
     if (!showValidation(errs)) return;
+    if (state.running){ showToast('Espera a que termine la ejecución actual.','error'); return; }
     var lv=buildLevelJSON();
     document.getElementById('creatorModal').classList.remove('show');
-    LEVELS.push(lv);
-    loadLevel(LEVELS.length-1, true);
-    LEVELS.pop();
     sfxClick();
+    LEVELS.push(lv);
+    var idx = LEVELS.length - 1;
+    state.levelIndex = idx;
+    buildLevelScene();
+    resetLevelState(true);
+    document.getElementById('hudLevelTitle').textContent = 'NIVEL PERSONALIZADO';
+    document.getElementById('hudLevelRegion').textContent = lv.region||'Mi nivel';
+    document.getElementById('hudLevelShort').textContent = lv.name;
+    document.getElementById('missionText').innerHTML = lv.story;
+    document.getElementById('missionCrystals').textContent = lv.required_crystals;
+    document.getElementById('missionMaxBlocks').textContent = lv.max_blocks;
+    document.getElementById('missionGrid').textContent = lv.grid_size[0]+'×'+lv.grid_size[1];
+    LEVELS.pop();
   });
 
   document.getElementById('crSave').addEventListener('click', function(){
@@ -3089,14 +3124,20 @@
       setTimeout(function(){ playBtn.classList.add('show'); }, 320);
     }
 
+    var dismissed = false;
     function dismissIntro(){
+      if (dismissed) return;
+      dismissed = true;
+      ac(); // start audio context on first user gesture
       var intro = document.getElementById('introScreen');
       intro.classList.add('fade-out');
       setTimeout(function(){ intro.classList.add('hidden'); }, 900);
     }
 
     playBtn.addEventListener('click', function(){ sfxClick(); dismissIntro(); });
-    document.getElementById('introSkipBtn').addEventListener('click', function(){ clearTimeout(storyTimer); goSlide(total-1); showPlayBtn(); });
+    document.getElementById('introSkipBtn').addEventListener('click', function(){
+      clearTimeout(storyTimer); goSlide(total-1); showPlayBtn();
+    });
   })();
 
   /* ============ INIT ============ */
