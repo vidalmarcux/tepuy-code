@@ -588,6 +588,72 @@
               <h2 style="margin-top:0;">Selecciona un Nivel</h2>
               <p>Tu progreso se guarda automáticamente.</p>
               <div class="level-cards" id="levelCards"></div>
+              <button class="modal-btn primary" id="btnOpenCreator" style="margin-top:10px;width:100%;font-size:14px;">✏️ Crear mi propio nivel</button>
+            </div>
+          </div>
+
+          <!-- LEVEL CREATOR SCREEN -->
+          <div class="modal-overlay" id="creatorModal" style="align-items:flex-start;overflow-y:auto;padding:16px;">
+            <div class="modal-card" style="width:min(860px,98%);max-width:98%;text-align:left;padding:22px 22px 18px;">
+              <button class="close-x" id="closeCreator">✕</button>
+              <h2 style="margin:0 0 4px;">✏️ Creador de Niveles</h2>
+              <p style="margin:0 0 14px;font-size:13px;">Diseña tu propio tablero. Selecciona una herramienta y toca las celdas del grid.</p>
+
+              <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                <!-- LEFT: controls -->
+                <div style="flex:0 0 240px;display:flex;flex-direction:column;gap:12px;">
+                  <!-- meta fields -->
+                  <div style="background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:9px;">
+                    <div style="font-family:var(--font-hud);font-size:10px;letter-spacing:1.4px;color:var(--ink-dim);margin-bottom:2px;">DATOS DEL NIVEL</div>
+                    <div><label style="font-size:11.5px;color:var(--ink-dim);display:block;margin-bottom:3px;">Nombre</label>
+                      <input id="crName" value="Mi Nivel" maxlength="32" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:var(--font-body);font-size:13px;"/></div>
+                    <div><label style="font-size:11.5px;color:var(--ink-dim);display:block;margin-bottom:3px;">Región</label>
+                      <input id="crRegion" value="Venezuela" maxlength="32" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:var(--font-body);font-size:13px;"/></div>
+                    <div style="display:flex;gap:8px;">
+                      <div style="flex:1"><label style="font-size:11px;color:var(--ink-dim);display:block;margin-bottom:3px;">Tamaño</label>
+                        <select id="crSize" style="width:100%;background:rgba(12,28,56,.9);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px 8px;font-family:var(--font-body);font-size:13px;">
+                          <option value="4">4×4</option><option value="5">5×5</option>
+                          <option value="6" selected>6×6</option><option value="7">7×7</option><option value="8">8×8</option>
+                        </select></div>
+                      <div style="flex:1"><label style="font-size:11px;color:var(--ink-dim);display:block;margin-bottom:3px;">Cristales</label>
+                        <select id="crCrystals" style="width:100%;background:rgba(12,28,56,.9);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px 8px;font-family:var(--font-body);font-size:13px;">
+                          <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option>
+                        </select></div>
+                    </div>
+                    <div><label style="font-size:11px;color:var(--ink-dim);display:block;margin-bottom:3px;">Límite de bloques</label>
+                      <input id="crMaxBlocks" type="number" min="4" max="30" value="12" style="width:80px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:var(--font-body);font-size:13px;"/></div>
+                  </div>
+
+                  <!-- tool palette -->
+                  <div style="background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:12px;">
+                    <div style="font-family:var(--font-hud);font-size:10px;letter-spacing:1.4px;color:var(--ink-dim);margin-bottom:10px;">HERRAMIENTAS</div>
+                    <div id="crTools" style="display:flex;flex-direction:column;gap:7px;"></div>
+                  </div>
+
+                  <!-- tip -->
+                  <div style="background:rgba(41,198,255,.08);border:1px solid rgba(41,198,255,.25);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--ink-dim);line-height:1.5;">
+                    💡 <b style="color:var(--blue);">Tip:</b> Coloca exactamente <b style="color:var(--ink);">1 inicio</b> y <b style="color:var(--ink);">1 meta</b> para poder probar el nivel.
+                  </div>
+
+                  <!-- action buttons -->
+                  <button class="exec-btn" id="crTest" style="font-size:14px;padding:12px;">▶ Probar nivel</button>
+                  <div style="display:flex;gap:8px;">
+                    <button class="modal-btn primary" id="crSave" style="flex:1;font-size:13px;padding:10px;">💾 Guardar</button>
+                    <button class="modal-btn secondary" id="crExport" style="flex:1;font-size:13px;padding:10px;">📋 Exportar JSON</button>
+                  </div>
+                  <button class="modal-btn secondary" id="crClear" style="font-size:12px;padding:8px;color:var(--red);">🗑 Limpiar tablero</button>
+                </div>
+
+                <!-- RIGHT: grid + JSON -->
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;">
+                  <canvas id="crCanvas" style="width:100%;border-radius:16px;border:1px solid var(--line);cursor:crosshair;touch-action:none;background:rgba(6,14,30,.7);"></canvas>
+                  <div id="crValidation" style="font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:10px;display:none;"></div>
+                  <div id="crJsonWrap" style="display:none;">
+                    <div style="font-family:var(--font-hud);font-size:10px;letter-spacing:1.4px;color:var(--ink-dim);margin-bottom:6px;">JSON EXPORTADO</div>
+                    <textarea id="crJson" readonly style="width:100%;height:200px;background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:10px;color:#9dfcff;font-family:monospace;font-size:11px;padding:10px;resize:vertical;"></textarea>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1973,9 +2039,14 @@
   });
 
   /* ============ LEVEL SELECT ============ */
+  var CUSTOM_KEY = 'tepuyCodeCustomLevels_v1';
+  function loadCustomLevels(){ try{ return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || []; }catch(e){ return []; } }
+  function saveCustomLevels(arr){ try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr)); }catch(e){} }
+
   function renderLevelCards(){
     var prog = loadProgress(), wrap = document.getElementById('levelCards');
     wrap.innerHTML = '';
+    // built-in levels
     LEVELS.forEach(function(lv, idx){
       var unlocked = idx===0 || (prog[LEVELS[idx-1].level_id] && prog[LEVELS[idx-1].level_id].completed);
       var stars = (prog[lv.level_id] && prog[lv.level_id].stars) || 0;
@@ -1990,14 +2061,375 @@
       });
       wrap.appendChild(card);
     });
+    // custom levels
+    var customs = loadCustomLevels();
+    if (customs.length){
+      var sep = document.createElement('div');
+      sep.style.cssText='font-family:var(--font-hud);font-size:10px;letter-spacing:1.4px;color:var(--ink-dim);margin:10px 0 4px;';
+      sep.textContent='MIS NIVELES';
+      wrap.appendChild(sep);
+    }
+    customs.forEach(function(lv, ci){
+      var card = document.createElement('div');
+      card.className = 'level-card';
+      card.style.cssText='border-color:rgba(180,92,255,.4);';
+      card.innerHTML = '<div class="num" style="color:var(--purple);">✏</div>'+
+        '<div class="info"><div class="name">'+escapeHtml(lv.name)+'</div><div class="region">'+escapeHtml(lv.region)+'</div></div>'+
+        '<div style="display:flex;gap:6px;align-items:center;">'+
+          '<button data-ci="'+ci+'" class="cr-del-btn" style="background:rgba(255,59,92,.15);border:1px solid rgba(255,59,92,.4);color:var(--red);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer;">✕</button>'+
+        '</div>';
+      card.addEventListener('click', function(e){
+        if (e.target.classList.contains('cr-del-btn')) return;
+        document.getElementById('levelModal').classList.remove('show');
+        loadCustomLevel(ci);
+      });
+      card.querySelector('.cr-del-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        var arr = loadCustomLevels(); arr.splice(ci,1); saveCustomLevels(arr); renderLevelCards();
+      });
+      wrap.appendChild(card);
+    });
   }
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function loadCustomLevel(ci){
+    var arr = loadCustomLevels();
+    if (!arr[ci]) return;
+    // inject as a temporary level
+    var lv = arr[ci];
+    LEVELS.push(lv);
+    loadLevel(LEVELS.length-1, true);
+    // remove the temp after loading (clean up next time)
+    LEVELS.pop();
+  }
+
   function openLevelModal(){ sfxClick(); renderLevelCards(); document.getElementById('levelModal').classList.add('show'); }
   document.getElementById('btnLevels').addEventListener('click', openLevelModal);
   document.getElementById('btnLevels2').addEventListener('click', openLevelModal);
   document.getElementById('closeLevelModal').addEventListener('click', function(){
     sfxClick(); document.getElementById('levelModal').classList.remove('show');
   });
+  document.getElementById('btnOpenCreator').addEventListener('click', function(){
+    document.getElementById('levelModal').classList.remove('show');
+    openCreator();
+  });
+  document.getElementById('closeCreator').addEventListener('click', function(){
+    document.getElementById('creatorModal').classList.remove('show');
+  });
   document.getElementById('btnMute').addEventListener('click', function(){ ac(); setMuted(!muted); });
+
+  /* ============ LEVEL CREATOR ============ */
+  var CR = {
+    grid: [],       // 2D array of cell types
+    n: 6,           // cols
+    m: 6,           // rows
+    tool: 'PATH',   // active tool
+    startSet: false,
+    goalSet: false,
+    startDir: 1,    // direction for start cell (0=N,1=E,2=S,3=W)
+    painting: false
+  };
+  var CR_TOOLS = [
+    { id:'PATH',   label:'Camino libre',   color:'#1a7a5a', icon:'▢', desc:'Celda por donde Coby puede caminar' },
+    { id:'START',  label:'Inicio de Coby', color:'#39ff7a', icon:'🐦', desc:'Posición inicial (solo 1)' },
+    { id:'GOAL',   label:'Meta / Faro',    color:'#ffd166', icon:'🏺', desc:'Destino final (solo 1)' },
+    { id:'CRYSTAL',label:'Cristal',        color:'#9dfcff', icon:'💎', desc:'Coleccionable de energía' },
+    { id:'VOLCANO',label:'Volcán',         color:'#ff5b76', icon:'🌋', desc:'Obstáculo: volcán de lava' },
+    { id:'VORTEX', label:'Vórtice',        color:'#b45cff', icon:'🌀', desc:'Obstáculo: remolino ciber' },
+    { id:'ERASE',  label:'Borrar celda',   color:'rgba(255,255,255,.15)', icon:'⌫', desc:'Vuelve la celda a camino libre' }
+  ];
+
+  function openCreator(){
+    // reset state
+    CR.n = 6; CR.m = 6;
+    document.getElementById('crSize').value = '6';
+    initCreatorGrid();
+    buildToolPalette();
+    resizeCreatorCanvas();
+    drawCreatorBoard();
+    document.getElementById('crJsonWrap').style.display='none';
+    document.getElementById('crValidation').style.display='none';
+    document.getElementById('creatorModal').classList.add('show');
+  }
+
+  function initCreatorGrid(){
+    CR.n = parseInt(document.getElementById('crSize').value)||6;
+    CR.m = CR.n;
+    CR.grid = [];
+    CR.startSet = false; CR.goalSet = false;
+    for (var r=0;r<CR.m;r++){
+      CR.grid.push([]);
+      for (var c=0;c<CR.n;c++) CR.grid[r].push('PATH');
+    }
+    // default: start top-left, goal bottom-right
+    CR.grid[0][0] = 'START'; CR.startSet = true;
+    CR.grid[CR.m-1][CR.n-1] = 'GOAL'; CR.goalSet = true;
+  }
+
+  function buildToolPalette(){
+    var wrap = document.getElementById('crTools');
+    wrap.innerHTML = '';
+    CR_TOOLS.forEach(function(t){
+      var btn = document.createElement('button');
+      btn.dataset.tool = t.id;
+      btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--ink);font-family:var(--font-body);font-weight:700;font-size:13px;cursor:pointer;text-align:left;transition:all .1s ease;';
+      btn.innerHTML = '<span style="font-size:17px;width:22px;text-align:center;">'+t.icon+'</span><span>'+t.label+'</span>';
+      if (CR.tool === t.id) btn.style.background = t.color.includes('rgba') ? 'rgba(255,255,255,.12)' : t.color+'33'; btn.style.borderColor = t.color;
+      btn.addEventListener('click', function(){
+        CR.tool = t.id;
+        document.querySelectorAll('#crTools button').forEach(function(b){
+          var tid = b.dataset.tool;
+          var tc = CR_TOOLS.find(function(x){return x.id===tid;});
+          b.style.background = 'rgba(255,255,255,.03)'; b.style.borderColor = 'rgba(255,255,255,.1)'; b.style.color='var(--ink)';
+          if (tid === CR.tool){ b.style.background=(tc.color.includes('rgba')?'rgba(255,255,255,.14)':tc.color+'33'); b.style.borderColor=tc.color; }
+        });
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  var crCanvas = document.getElementById('crCanvas');
+  var crCtx = crCanvas.getContext('2d');
+  var CR_TW = 64, CR_TH = 32;
+
+  function resizeCreatorCanvas(){
+    var wrap = crCanvas.parentElement;
+    var W = Math.min(wrap.clientWidth - 0, 560);
+    var H = Math.round(W * 0.72);
+    crCanvas.width = W * (window.devicePixelRatio||1);
+    crCanvas.height = H * (window.devicePixelRatio||1);
+    crCanvas.style.width = W+'px'; crCanvas.style.height = H+'px';
+    crCtx.setTransform(window.devicePixelRatio||1,0,0,window.devicePixelRatio||1,0,0);
+    CR_TW = Math.max(44, Math.floor(W/(CR.n+CR.m)*1.6));
+    CR_TH = Math.round(CR_TW/2);
+  }
+
+  function crIsoPos(gx,gy){
+    var W = crCanvas.width/(window.devicePixelRatio||1);
+    var H = crCanvas.height/(window.devicePixelRatio||1);
+    var ox = W/2, oy = H/2 - (CR.n+CR.m)*CR_TH/4 + 14;
+    return { x: ox+(gx-gy)*CR_TW/2, y: oy+(gx+gy)*CR_TH/2 };
+  }
+
+  function drawCreatorBoard(){
+    var W = crCanvas.width/(window.devicePixelRatio||1);
+    var H = crCanvas.height/(window.devicePixelRatio||1);
+    crCtx.clearRect(0,0,W,H);
+
+    // platform base
+    var pad=0.5;
+    var A=crIsoPos(-pad,-pad), B=crIsoPos(CR.n-1+pad,-pad), C=crIsoPos(CR.n-1+pad,CR.m-1+pad), D=crIsoPos(-pad,CR.m-1+pad);
+    crCtx.save();
+    crCtx.beginPath(); crCtx.moveTo(A.x,A.y); crCtx.lineTo(B.x,B.y); crCtx.lineTo(C.x,C.y); crCtx.lineTo(D.x,D.y); crCtx.closePath();
+    var pg=crCtx.createLinearGradient(A.x,A.y,C.x,C.y);
+    pg.addColorStop(0,'#163040'); pg.addColorStop(1,'#0a1c28');
+    crCtx.fillStyle=pg; crCtx.fill();
+    // cliff
+    crCtx.beginPath(); crCtx.moveTo(D.x,D.y); crCtx.lineTo(C.x,C.y); crCtx.lineTo(C.x,C.y+22); crCtx.lineTo(D.x,D.y+22); crCtx.closePath();
+    crCtx.fillStyle='#0a1420'; crCtx.fill();
+    crCtx.beginPath(); crCtx.moveTo(C.x,C.y); crCtx.lineTo(B.x,B.y); crCtx.lineTo(B.x,B.y+22); crCtx.lineTo(C.x,C.y+22); crCtx.closePath();
+    crCtx.fillStyle='#0d1830'; crCtx.fill();
+    crCtx.restore();
+
+    var cells=[];
+    for(var gy=0;gy<CR.m;gy++) for(var gx=0;gx<CR.n;gx++) cells.push({gx:gx,gy:gy});
+    cells.sort(function(a,b){return(a.gx+a.gy)-(b.gx+b.gy);});
+
+    cells.forEach(function(c){
+      var p=crIsoPos(c.gx,c.gy);
+      var type=CR.grid[c.gy][c.gx];
+      var cfg={PATH:{top:'rgba(28,160,130,.55)',edge:'rgba(80,255,200,.55)',side:'#062620'},
+               START:{top:'rgba(57,255,122,.75)',edge:'#39ff7a',side:'#0a3a1a'},
+               GOAL:{top:'rgba(255,209,102,.75)',edge:'#ffd166',side:'#3d2f08'},
+               CRYSTAL:{top:'rgba(60,180,210,.55)',edge:'#7ef7ff',side:'#062836'},
+               VOLCANO:{top:'rgba(200,40,60,.72)',edge:'#ff5b76',side:'#3a0a14'},
+               VORTEX:{top:'rgba(140,60,230,.72)',edge:'#c07aff',side:'#2a0840'}};
+      var cf=cfg[type]||cfg.PATH;
+      // side face
+      crCtx.save();
+      crCtx.beginPath();
+      crCtx.moveTo(p.x-CR_TW/2,p.y); crCtx.lineTo(p.x,p.y+CR_TH/2);
+      crCtx.lineTo(p.x,p.y+CR_TH/2+10); crCtx.lineTo(p.x-CR_TW/2,p.y+10); crCtx.closePath();
+      crCtx.fillStyle=cf.side; crCtx.fill();
+      crCtx.beginPath();
+      crCtx.moveTo(p.x+CR_TW/2,p.y); crCtx.lineTo(p.x,p.y+CR_TH/2);
+      crCtx.lineTo(p.x,p.y+CR_TH/2+10); crCtx.lineTo(p.x+CR_TW/2,p.y+10); crCtx.closePath();
+      crCtx.fillStyle=cf.side; crCtx.fill();
+      // top
+      crCtx.beginPath(); crCtx.moveTo(p.x,p.y-CR_TH/2); crCtx.lineTo(p.x+CR_TW/2,p.y); crCtx.lineTo(p.x,p.y+CR_TH/2); crCtx.lineTo(p.x-CR_TW/2,p.y); crCtx.closePath();
+      crCtx.fillStyle=cf.top; crCtx.fill();
+      crCtx.shadowColor=cf.edge; crCtx.shadowBlur=8;
+      crCtx.strokeStyle=cf.edge; crCtx.lineWidth=1.8; crCtx.stroke();
+      crCtx.shadowBlur=0;
+      // icon
+      var icons={START:'🐦',GOAL:'🏺',CRYSTAL:'💎',VOLCANO:'🌋',VORTEX:'🌀'};
+      if (icons[type]){
+        crCtx.font=Math.round(CR_TH*0.7)+'px serif';
+        crCtx.textAlign='center'; crCtx.textBaseline='middle';
+        crCtx.fillText(icons[type], p.x, p.y-4);
+      }
+      // direction arrow for start
+      if (type==='START'){
+        var dv=DIRV[CR.startDir], ap=crIsoPos(c.gx+dv.x*0.55,c.gy+dv.y*0.55);
+        var pulse2=(Math.sin(Date.now()*0.004)+1)/2;
+        crCtx.save(); crCtx.globalAlpha=0.4+pulse2*0.4;
+        crCtx.strokeStyle='#39ff7a'; crCtx.lineWidth=2.5; crCtx.lineCap='round';
+        var dx2=ap.x-p.x, dy2=ap.y-p.y, l2=Math.sqrt(dx2*dx2+dy2*dy2)||1;
+        var ux2=dx2/l2, uy2=dy2/l2;
+        crCtx.beginPath(); crCtx.moveTo(ap.x-ux2*7-uy2*5,ap.y-uy2*7+ux2*5); crCtx.lineTo(ap.x,ap.y); crCtx.lineTo(ap.x-ux2*7+uy2*5,ap.y-uy2*7-ux2*5); crCtx.stroke();
+        crCtx.restore();
+      }
+      crCtx.restore();
+    });
+    requestAnimationFrame(drawCreatorBoard);
+  }
+
+  function crCanvasToGrid(ex, ey){
+    var W=crCanvas.width/(window.devicePixelRatio||1), H=crCanvas.height/(window.devicePixelRatio||1);
+    var ox=W/2, oy=H/2-(CR.n+CR.m)*CR_TH/4+14;
+    var px=ex-ox, py=ey-oy;
+    var gx=Math.round((px/CR_TW*2 + py/CR_TH*2)/2 - 0.0);
+    var gy=Math.round((py/CR_TH*2 - px/CR_TW*2)/2 - 0.0);
+    return {gx:gx, gy:gy};
+  }
+
+  function applyTool(gx,gy){
+    if (gx<0||gy<0||gx>=CR.n||gy>=CR.m) return;
+    var prev=CR.grid[gy][gx];
+    var t=CR.tool==='ERASE'?'PATH':CR.tool;
+    if (t==='START'){
+      // remove previous start
+      for(var r=0;r<CR.m;r++) for(var c=0;c<CR.n;c++) if(CR.grid[r][c]==='START') CR.grid[r][c]='PATH';
+      CR.startSet=true;
+    }
+    if (t==='GOAL'){
+      for(var r2=0;r2<CR.m;r2++) for(var c2=0;c2<CR.n;c2++) if(CR.grid[r2][c2]==='GOAL') CR.grid[r2][c2]='PATH';
+      CR.goalSet=true;
+    }
+    if (prev==='START') CR.startSet=false;
+    if (prev==='GOAL') CR.goalSet=false;
+    CR.grid[gy][gx]=t;
+    if (prev==='START' && t!=='START') CR.startSet=false;
+    if (prev==='GOAL' && t!=='GOAL') CR.goalSet=false;
+    CR.startSet = CR.grid.some(function(row){return row.some(function(c3){return c3==='START';});});
+    CR.goalSet = CR.grid.some(function(row){return row.some(function(c4){return c4==='GOAL';});});
+    document.getElementById('crValidation').style.display='none';
+  }
+
+  crCanvas.addEventListener('pointerdown', function(e){
+    CR.painting=true;
+    var r=crCanvas.getBoundingClientRect();
+    var cell=crCanvasToGrid(e.clientX-r.left, e.clientY-r.top);
+    applyTool(cell.gx,cell.gy);
+    crCanvas.setPointerCapture(e.pointerId);
+  });
+  crCanvas.addEventListener('pointermove', function(e){
+    if (!CR.painting) return;
+    var r=crCanvas.getBoundingClientRect();
+    var cell=crCanvasToGrid(e.clientX-r.left, e.clientY-r.top);
+    applyTool(cell.gx,cell.gy);
+  });
+  crCanvas.addEventListener('pointerup', function(){ CR.painting=false; });
+
+  document.getElementById('crSize').addEventListener('change', function(){
+    initCreatorGrid(); resizeCreatorCanvas();
+  });
+
+  // direction toggle on right-click of start cell
+  crCanvas.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+    CR.startDir=(CR.startDir+1)%4;
+  });
+
+  function validateCreator(){
+    var msgs=[];
+    if (!CR.startSet) msgs.push('Falta el inicio (🐦).');
+    if (!CR.goalSet) msgs.push('Falta la meta (🏺).');
+    var crystals=0;
+    CR.grid.forEach(function(row){row.forEach(function(c){if(c==='CRYSTAL')crystals++;});});
+    var reqCrystals=parseInt(document.getElementById('crCrystals').value)||2;
+    if (crystals < reqCrystals) msgs.push('Hay '+crystals+' cristales pero se requieren '+reqCrystals+'. Agrega más o reduce el número requerido.');
+    return msgs;
+  }
+
+  function buildLevelJSON(){
+    var startX=0,startY=0,goalX=CR.n-1,goalY=CR.m-1;
+    var crystals=[],obstacles=[];
+    CR.grid.forEach(function(row,ry){
+      row.forEach(function(cell,cx){
+        if(cell==='START'){startX=cx;startY=ry;}
+        else if(cell==='GOAL'){goalX=cx;goalY=ry;}
+        else if(cell==='CRYSTAL') crystals.push({x:cx,y:ry});
+        else if(cell==='VOLCANO') obstacles.push({x:cx,y:ry,type:'volcano'});
+        else if(cell==='VORTEX') obstacles.push({x:cx,y:ry,type:'vortex'});
+      });
+    });
+    var reqC=parseInt(document.getElementById('crCrystals').value)||2;
+    var maxB=parseInt(document.getElementById('crMaxBlocks').value)||12;
+    var nm=document.getElementById('crName').value||'Mi Nivel';
+    var region=document.getElementById('crRegion').value||'Venezuela';
+    var id='custom_'+Date.now();
+    return {
+      level_id:id, name:nm, region:region,
+      story:'Nivel creado por un estudiante de Tepuy Code. Guía a Coby hasta el Faro Ancestral.',
+      grid_size:[CR.n,CR.m],
+      start:{x:startX,y:startY,dir:CR.startDir},
+      goal:{x:goalX,y:goalY},
+      required_crystals:Math.min(reqC,crystals.length),
+      crystals:crystals, obstacles:obstacles,
+      allowed_blocks:['AVANZAR','GIRAR_IZQ','GIRAR_DER','REPETIR_2','SI_OBSTACULO'],
+      max_blocks:maxB
+    };
+  }
+
+  function showValidation(msgs){
+    var el=document.getElementById('crValidation');
+    if (msgs.length===0){
+      el.style.display='none'; return true;
+    }
+    el.style.display='block';
+    el.style.cssText='font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:10px;background:rgba(255,59,92,.15);border:1px solid var(--red);color:#ffdbe2;';
+    el.innerHTML='⚠ '+msgs.join('<br>⚠ ');
+    return false;
+  }
+
+  document.getElementById('crTest').addEventListener('click', function(){
+    var errs=validateCreator();
+    if (!showValidation(errs)) return;
+    var lv=buildLevelJSON();
+    document.getElementById('creatorModal').classList.remove('show');
+    LEVELS.push(lv);
+    loadLevel(LEVELS.length-1, true);
+    LEVELS.pop();
+    sfxClick();
+  });
+
+  document.getElementById('crSave').addEventListener('click', function(){
+    var errs=validateCreator();
+    if (!showValidation(errs)) return;
+    var lv=buildLevelJSON();
+    var arr=loadCustomLevels(); arr.push(lv); saveCustomLevels(arr);
+    var el=document.getElementById('crValidation');
+    el.style.display='block';
+    el.style.cssText='font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:10px;background:rgba(57,255,122,.12);border:1px solid var(--green);color:#c0ffe0;';
+    el.textContent='✅ Nivel "'+lv.name+'" guardado. Aparecerá en el selector de niveles.';
+    sfxCrystal();
+  });
+
+  document.getElementById('crExport').addEventListener('click', function(){
+    var errs=validateCreator();
+    if (!showValidation(errs)) return;
+    var lv=buildLevelJSON();
+    var json=JSON.stringify(lv,null,2);
+    document.getElementById('crJson').value=json;
+    document.getElementById('crJsonWrap').style.display='block';
+    document.getElementById('crJson').select();
+    try{ document.execCommand('copy'); }catch(e){}
+    sfxClick();
+  });
+
+  document.getElementById('crClear').addEventListener('click', function(){
+    initCreatorGrid();
+  });
 
   /* ============ BUTTONS / ZOOM ============ */
   document.getElementById('btnExec').addEventListener('click', function(){ sfxClick(); execute(); });
