@@ -412,537 +412,7 @@
       <div class="stage">
         <div class="board-wrap">
           <!-- Illustrated vector landscape -->
-          <svg id="scenery" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <!-- Sky gradient -->
-              <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#2D8FE8"/>
-                <stop offset="45%"  stop-color="#55B4FF"/>
-                <stop offset="100%" stop-color="#C7EBFF"/>
-              </linearGradient>
-              <!-- Tepuy rock face: terracotta/arenisca -->
-              <linearGradient id="tepuyMainG" x1="0.2" y1="0" x2="0.8" y2="1">
-                <stop offset="0%"   stop-color="#C8845A"/>
-                <stop offset="25%"  stop-color="#B87348"/>
-                <stop offset="55%"  stop-color="#8E6855"/>
-                <stop offset="100%" stop-color="#5B453D"/>
-              </linearGradient>
-              <linearGradient id="tepuyLightFace" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%"   stop-color="#D4956A"/>
-                <stop offset="60%"  stop-color="#B88867"/>
-                <stop offset="100%" stop-color="#8E6855"/>
-              </linearGradient>
-              <linearGradient id="tepuyBackG" x1="0.3" y1="0" x2="0.7" y2="1">
-                <stop offset="0%"   stop-color="#9A7A6A"/>
-                <stop offset="100%" stop-color="#6A5548"/>
-              </linearGradient>
-              <!-- Waterfall -->
-              <linearGradient id="waterfallG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.95"/>
-                <stop offset="40%"  stop-color="#B8ECFF" stop-opacity="0.88"/>
-                <stop offset="100%" stop-color="#59C8F8" stop-opacity="0.7"/>
-              </linearGradient>
-              <!-- River water -->
-              <linearGradient id="riverG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#59C8F8"/>
-                <stop offset="50%"  stop-color="#1E92D4"/>
-                <stop offset="100%" stop-color="#0E6FB8"/>
-              </linearGradient>
-              <!-- Forest layers -->
-              <linearGradient id="forestFarG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#55B06A"/>
-                <stop offset="100%" stop-color="#1D5D34"/>
-              </linearGradient>
-              <linearGradient id="forestMidG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#65D46A"/>
-                <stop offset="55%"  stop-color="#2E8B4D"/>
-                <stop offset="100%" stop-color="#1D5D34"/>
-              </linearGradient>
-              <linearGradient id="forestFgG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#72E47A"/>
-                <stop offset="50%"  stop-color="#3AAB52"/>
-                <stop offset="100%" stop-color="#1A4D2E"/>
-              </linearGradient>
-              <!-- Sand beach -->
-              <linearGradient id="sandG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#DDB97E"/>
-                <stop offset="100%" stop-color="#C8A465"/>
-              </linearGradient>
-              <!-- Mist -->
-              <radialGradient id="mistG1" cx="0.5" cy="0.5" r="0.5">
-                <stop offset="0%"   stop-color="#D8F5FF" stop-opacity="0.7"/>
-                <stop offset="100%" stop-color="#D8F5FF" stop-opacity="0"/>
-              </radialGradient>
-              <linearGradient id="mistBandG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="#D8F5FF" stop-opacity="0.0"/>
-                <stop offset="50%"  stop-color="#D8F5FF" stop-opacity="0.6"/>
-                <stop offset="100%" stop-color="#D8F5FF" stop-opacity="0.0"/>
-              </linearGradient>
-              <!-- Filters -->
-              <filter id="fBlur2"><feGaussianBlur stdDeviation="2"/></filter>
-              <filter id="fBlur5"><feGaussianBlur stdDeviation="5"/></filter>
-              <filter id="fBlur12"><feGaussianBlur stdDeviation="12"/></filter>
-              <filter id="fBlur22"><feGaussianBlur stdDeviation="22"/></filter>
-              <filter id="fGlow">
-                <feGaussianBlur stdDeviation="5" result="b"/>
-                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-              <filter id="fGlowSoft">
-                <feGaussianBlur stdDeviation="3" result="b"/>
-                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-              <!-- Waterfall animation -->
-              <linearGradient id="wfAnim1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
-                <stop offset="60%" stop-color="#cce8ff" stop-opacity="0.75"/>
-                <stop offset="100%" stop-color="#59C8F8" stop-opacity="0.5"/>
-                <animateTransform attributeName="gradientTransform" type="translate" values="0,0;0,0.5;0,1;0,0" dur="2.5s" repeatCount="indefinite"/>
-              </linearGradient>
-              <!-- Cloud clip -->
-              <clipPath id="skyClip"><rect width="1200" height="420"/></clipPath>
-            </defs>
-
-            <!-- ======= LAYER 0: SKY ======= -->
-            <rect width="1200" height="700" fill="url(#skyG)"/>
-
-            <!-- ======= LAYER 1: FAR CLOUDS ======= -->
-            <g clip-path="url(#skyClip)" opacity="0.92">
-              <!-- Upper cloud band (white fluffy) -->
-              <g fill="#FFFFFF">
-                <!-- Top scattered puffs -->
-                <ellipse cx="95"  cy="55"  rx="70"  ry="28"/>
-                <ellipse cx="55"  cy="62"  rx="44"  ry="20"/>
-                <ellipse cx="140" cy="48"  rx="52"  ry="22"/>
-
-                <ellipse cx="280" cy="40"  rx="60"  ry="22"/>
-                <ellipse cx="330" cy="34"  rx="42"  ry="18"/>
-
-                <ellipse cx="490" cy="30"  rx="55"  ry="20"/>
-                <ellipse cx="545" cy="24"  rx="38"  ry="15"/>
-
-                <ellipse cx="680" cy="35"  rx="65"  ry="24"/>
-                <ellipse cx="740" cy="28"  rx="48"  ry="18"/>
-
-                <ellipse cx="900" cy="42"  rx="80"  ry="30"/>
-                <ellipse cx="960" cy="34"  rx="58"  ry="22"/>
-                <ellipse cx="845" cy="48"  rx="42"  ry="18"/>
-
-                <ellipse cx="1080" cy="38" rx="72"  ry="26"/>
-                <ellipse cx="1140" cy="30" rx="52"  ry="20"/>
-                <ellipse cx="1020" cy="48" rx="40"  ry="16"/>
-                <ellipse cx="1185" cy="46" rx="35"  ry="14"/>
-
-                <!-- Mid-sky thin wispy clouds -->
-                <ellipse cx="200" cy="110" rx="90"  ry="18" opacity="0.55"/>
-                <ellipse cx="600" cy="95"  rx="110" ry="20" opacity="0.45"/>
-                <ellipse cx="950" cy="105" rx="85"  ry="16" opacity="0.5"/>
-
-                <!-- Behind-tepuy clouds (lower band, softer) -->
-                <ellipse cx="320" cy="200" rx="100" ry="35" opacity="0.6"/>
-                <ellipse cx="250" cy="215" rx="70"  ry="28" opacity="0.5"/>
-                <ellipse cx="870" cy="195" rx="95"  ry="32" opacity="0.55"/>
-                <ellipse cx="940" cy="212" rx="65"  ry="25" opacity="0.48"/>
-                <ellipse cx="500" cy="225" rx="75"  ry="28" opacity="0.4"/>
-              </g>
-              <!-- Cloud shadows (subtle blue-gray undersides) -->
-              <g fill="#A8D4F0" opacity="0.3">
-                <ellipse cx="95"  cy="72"  rx="62" ry="14"/>
-                <ellipse cx="900" cy="60"  rx="72" ry="16"/>
-                <ellipse cx="1080" cy="54" rx="64" ry="13"/>
-                <ellipse cx="320" cy="216" rx="85" ry="18"/>
-              </g>
-            </g>
-
-            <!-- ======= LAYER 2: TEPUY BACK (wide, distant mesa) ======= -->
-            <!-- Far left tepuy plateau -->
-            <g filter="url(#fBlur2)" opacity="0.78">
-              <path d="M-20,380 L-20,260 C20,240 60,225 130,210 C190,198 250,196 320,198 C380,200 430,208 470,220 C510,232 530,248 540,268 L540,380 Z"
-                    fill="url(#tepuyBackG)"/>
-              <!-- flat top edge hint -->
-              <path d="M130,210 C190,198 250,196 320,198 C380,200 430,208 470,220" stroke="#A08070" stroke-width="3" fill="none"/>
-              <!-- sparse vegetation on top -->
-              <g fill="#2E8B4D" opacity="0.6">
-                <ellipse cx="180" cy="208" rx="22" ry="9"/>
-                <ellipse cx="260" cy="198" rx="28" ry="11"/>
-                <ellipse cx="360" cy="200" rx="24" ry="10"/>
-                <ellipse cx="440" cy="212" rx="20" ry="8"/>
-              </g>
-            </g>
-
-            <!-- Far right tepuy plateau -->
-            <g filter="url(#fBlur2)" opacity="0.72">
-              <path d="M1220,390 L1220,260 C1180,238 1140,222 1080,210 C1020,198 960,196 900,200 C850,203 820,212 800,226 C780,238 774,252 776,272 L776,390 Z"
-                    fill="url(#tepuyBackG)"/>
-              <path d="M1080,210 C1020,198 960,196 900,200 C850,203 820,212 800,226" stroke="#A08070" stroke-width="3" fill="none"/>
-              <g fill="#2E8B4D" opacity="0.6">
-                <ellipse cx="840" cy="210" rx="22" ry="9"/>
-                <ellipse cx="920" cy="202" rx="26" ry="10"/>
-                <ellipse cx="1010" cy="202" rx="24" ry="9"/>
-                <ellipse cx="1070" cy="208" rx="20" ry="8"/>
-              </g>
-            </g>
-
-            <!-- ======= LAYER 3: TEPUY MAIN (Auyantepui / Salto Ángel, centre) ======= -->
-            <!-- Main cliff body - slightly right of centre -->
-            <!-- Back face (shadow) -->
-            <path d="M340,430 L360,290 C370,250 382,218 400,194 C416,172 436,158 460,148 C484,138 512,134 542,136 C570,138 596,146 618,160 C640,174 656,192 668,214 C680,236 686,260 686,286 L700,430 Z"
-                  fill="#5B453D"/>
-            <!-- Main rock face (terracotta/arenisca) -->
-            <path d="M380,430 L395,295 C402,258 414,224 432,198 C448,174 468,158 494,148 C518,139 546,136 574,138 C600,140 624,150 644,166 C662,182 674,202 680,226 C686,250 686,276 684,304 L690,430 Z"
-                  fill="url(#tepuyMainG)"/>
-
-            <!-- Cliff face vertical striations (rock texture) -->
-            <g stroke="#7A5846" stroke-width="2" fill="none" opacity="0.5">
-              <path d="M430,200 C428,240 426,280 424,320 C422,360 420,395 418,430"/>
-              <path d="M458,165 C455,205 452,248 449,292 C446,336 444,380 442,430"/>
-              <path d="M492,150 C489,195 486,240 483,288 C480,336 478,382 476,430"/>
-              <path d="M528,140 C526,188 524,236 522,284 C520,332 519,380 518,430"/>
-              <path d="M562,142 C561,188 560,236 558,286 C557,335 556,382 556,430"/>
-              <path d="M596,150 C596,196 596,244 594,292 C593,340 592,386 591,430"/>
-              <path d="M626,166 C628,210 629,256 628,303 C627,350 627,392 626,430"/>
-              <path d="M652,192 C656,234 658,278 658,322 C658,366 657,400 656,430"/>
-            </g>
-
-            <!-- Light face (left side catches light) -->
-            <path d="M380,430 L395,295 C402,258 414,224 432,198 C448,174 468,158 494,148 L494,430 Z"
-                  fill="url(#tepuyLightFace)" opacity="0.55"/>
-
-            <!-- Shadow face (right side in shadow) -->
-            <path d="M644,166 C662,182 674,202 680,226 C686,250 686,276 684,304 L690,430 L640,430 Z"
-                  fill="#5B453D" opacity="0.65"/>
-
-            <!-- TOP EDGE: vegetation on tepuy summit -->
-            <g>
-              <!-- green clumps on the flat top -->
-              <path d="M432,198 C440,185 450,175 462,168 C474,162 488,158 502,156 C516,154 530,154 544,156 C558,158 572,163 584,170 C596,178 606,188 614,196"
-                    stroke="#2E8B4D" stroke-width="3" fill="none" opacity="0.4"/>
-              <!-- individual tree-top puffs on summit -->
-              <g fill="#3AAB52">
-                <ellipse cx="448" cy="182" rx="18" ry="12"/>
-                <ellipse cx="476" cy="165" rx="22" ry="14"/>
-                <ellipse cx="508" cy="155" rx="26" ry="16"/>
-                <ellipse cx="540" cy="152" rx="24" ry="15"/>
-                <ellipse cx="570" cy="154" rx="20" ry="13"/>
-                <ellipse cx="596" cy="162" rx="18" ry="12"/>
-                <ellipse cx="618" cy="175" rx="16" ry="11"/>
-              </g>
-              <g fill="#55B06A" opacity="0.6">
-                <ellipse cx="460" cy="178" rx="14" ry="9"/>
-                <ellipse cx="510" cy="149" rx="18" ry="11"/>
-                <ellipse cx="548" cy="146" rx="16" ry="10"/>
-                <ellipse cx="582" cy="157" rx="14" ry="9"/>
-              </g>
-              <!-- Dark outline on flat top edge -->
-              <path d="M432,198 C445,182 462,168 486,156 C510,144 534,140 558,142 C582,144 604,154 622,168 C636,178 648,190 656,202"
-                    stroke="#19465F" stroke-width="2.5" fill="none" opacity="0.7"/>
-            </g>
-
-            <!-- Side cliff vegetation patches -->
-            <g fill="#2E8B4D" opacity="0.65">
-              <ellipse cx="412" cy="260" rx="16" ry="10"/>
-              <ellipse cx="404" cy="310" rx="12" ry="8"/>
-              <ellipse cx="668" cy="280" rx="14" ry="9"/>
-              <ellipse cx="674" cy="340" rx="10" ry="7"/>
-            </g>
-
-            <!-- ======= LAYER 4: ANGEL FALLS (waterfall) ======= -->
-            <!-- Waterfall glow backdrop -->
-            <ellipse cx="536" cy="305" rx="28" ry="160" fill="#A8E8FF" filter="url(#fBlur12)" opacity="0.55"/>
-
-            <!-- Main waterfall stream -->
-            <path d="M526,152 C527,180 525,220 524,260 C523,300 522,340 524,380 C526,410 528,430 530,460 L542,460 C544,430 546,410 546,380 C546,340 545,300 544,260 C543,220 542,180 543,152 Z"
-                  fill="url(#wfAnim1)"/>
-            <!-- Waterfall highlight (white core) -->
-            <path d="M530,152 L536,152 L536,460 L530,460 Z" fill="rgba(255,255,255,0.85)">
-              <animateTransform attributeName="transform" type="translate" values="0,0;0,8;0,0" dur="1.8s" repeatCount="indefinite"/>
-            </path>
-            <!-- Waterfall widening as it falls -->
-            <path d="M520,380 C520,400 516,420 510,450 C506,468 502,480 498,495 L560,495 C558,480 556,468 553,450 C549,425 548,404 546,380 Z"
-                  fill="url(#waterfallG)" opacity="0.75">
-              <animateTransform attributeName="transform" type="translate" values="0,0;0,6;0,0" dur="2.5s" repeatCount="indefinite"/>
-            </path>
-
-            <!-- ======= LAYER 5: MIST BAND (around waterfall base & horizon) ======= -->
-            <!-- Waterfall base mist -->
-            <ellipse cx="534" cy="500" rx="130" ry="45" fill="#D8F5FF" filter="url(#fBlur22)" opacity="0.75">
-              <animate attributeName="opacity" values="0.55;0.85;0.55" dur="4s" repeatCount="indefinite"/>
-            </ellipse>
-            <ellipse cx="534" cy="498" rx="90" ry="30" fill="#FFFFFF" filter="url(#fBlur12)" opacity="0.5">
-              <animate attributeName="opacity" values="0.35;0.65;0.35" dur="5s" repeatCount="indefinite"/>
-            </ellipse>
-
-            <!-- Horizon mist band -->
-            <rect x="0" y="395" width="1200" height="60" fill="url(#mistBandG)" filter="url(#fBlur12)" opacity="0.55">
-              <animate attributeName="opacity" values="0.45;0.65;0.45" dur="12s" repeatCount="indefinite"/>
-            </rect>
-
-            <!-- ======= LAYER 6: FOREST FAR (behind tree line) ======= -->
-            <!-- Rolling forest silhouette far -->
-            <path d="M0,490 C30,465 60,455 90,450 C120,445 150,445 180,448 C210,452 240,458 270,460 C300,462 330,462 360,460 C390,458 420,452 450,448 C480,444 510,442 540,442 C570,442 600,442 630,444 C660,446 690,450 720,452 C750,454 780,455 810,453 C840,451 870,446 900,443 C930,440 960,438 990,438 C1020,438 1050,440 1080,444 C1110,448 1140,454 1170,460 C1185,464 1195,468 1205,472 L1205,700 L0,700 Z"
-                  fill="url(#forestFarG)"/>
-            <!-- Add round tree puffs on far forest edge -->
-            <g fill="#3AAB52" opacity="0.65">
-              <ellipse cx="80"  cy="448" rx="38" ry="22"/>
-              <ellipse cx="155" cy="442" rx="32" ry="19"/>
-              <ellipse cx="235" cy="455" rx="36" ry="21"/>
-              <ellipse cx="320" cy="458" rx="30" ry="18"/>
-              <ellipse cx="405" cy="448" rx="34" ry="20"/>
-              <ellipse cx="490" cy="440" rx="36" ry="22"/>
-              <ellipse cx="575" cy="440" rx="30" ry="18"/>
-              <ellipse cx="650" cy="444" rx="35" ry="21"/>
-              <ellipse cx="730" cy="450" rx="32" ry="19"/>
-              <ellipse cx="815" cy="448" rx="36" ry="22"/>
-              <ellipse cx="900" cy="440" rx="34" ry="20"/>
-              <ellipse cx="980" cy="436" rx="30" ry="18"/>
-              <ellipse cx="1060" cy="440" rx="36" ry="22"/>
-              <ellipse cx="1140" cy="456" rx="32" ry="19"/>
-            </g>
-            <g fill="#55D46A" opacity="0.4">
-              <ellipse cx="100" cy="444" rx="22" ry="13"/>
-              <ellipse cx="320" cy="452" rx="24" ry="14"/>
-              <ellipse cx="530" cy="436" rx="22" ry="13"/>
-              <ellipse cx="740" cy="444" rx="24" ry="14"/>
-              <ellipse cx="960" cy="434" rx="22" ry="13"/>
-            </g>
-
-            <!-- ======= LAYER 7: FOREST MIDDLE ======= -->
-            <path d="M0,540 C25,515 55,505 85,498 C115,492 145,490 175,492 C205,494 235,500 260,506 C285,512 310,516 335,516 C360,516 388,512 415,508 C442,504 470,500 500,498 C530,496 560,496 590,498 C620,500 650,505 680,508 C710,512 740,514 770,513 C800,512 830,508 860,504 C890,500 920,497 950,496 C980,496 1010,498 1040,502 C1070,506 1100,512 1130,520 C1155,526 1178,532 1205,540 L1205,700 L0,700 Z"
-                  fill="url(#forestMidG)"/>
-            <!-- Individual trees mid-ground with trunks visible -->
-            <g>
-              <!-- tree macro: trunk + canopy blob -->
-              <!-- left forest section -->
-              <rect x="38"  y="490" width="6" height="50" fill="#3D2010"/>
-              <ellipse cx="41"  cy="488" rx="32" ry="24" fill="#2E8B4D"/>
-              <ellipse cx="30"  cy="482" rx="20" ry="16" fill="#3AAB52"/>
-              <ellipse cx="52"  cy="480" rx="22" ry="17" fill="#55D46A" opacity="0.7"/>
-
-              <rect x="108" y="488" width="6" height="52" fill="#3D2010"/>
-              <ellipse cx="111" cy="486" rx="30" ry="22" fill="#2E8B4D"/>
-              <ellipse cx="100" cy="480" rx="20" ry="15" fill="#3AAB52"/>
-              <ellipse cx="122" cy="480" rx="22" ry="16" fill="#55D46A" opacity="0.65"/>
-
-              <rect x="185" y="492" width="6" height="48" fill="#3D2010"/>
-              <ellipse cx="188" cy="490" rx="28" ry="20" fill="#2E8B4D"/>
-              <ellipse cx="176" cy="484" rx="18" ry="14" fill="#3AAB52"/>
-
-              <!-- palm tree right of centre -->
-              <rect x="610" y="478" width="5" height="62" fill="#5A3520"/>
-              <g fill="#2E8B4D">
-                <path d="M613,478 C600,460 580,452 568,458 C580,456 594,462 608,476 Z"/>
-                <path d="M613,478 C628,458 650,452 662,456 C648,454 634,460 616,474 Z"/>
-                <path d="M613,478 C595,452 582,438 570,435 C582,435 596,445 614,470 Z"/>
-                <path d="M613,478 C630,450 645,437 658,434 C645,436 632,446 616,468 Z"/>
-                <path d="M613,480 C613,460 612,440 608,425 C610,440 612,460 613,478 Z"/>
-              </g>
-              <g fill="#55D46A" opacity="0.65">
-                <path d="M613,480 C598,462 576,453 562,458 C576,455 592,463 610,478 Z"/>
-                <path d="M613,480 C630,460 654,453 666,458 C652,455 638,463 618,476 Z"/>
-              </g>
-
-              <!-- right forest section -->
-              <rect x="975" y="490" width="6" height="50" fill="#3D2010"/>
-              <ellipse cx="978" cy="488" rx="30" ry="22" fill="#2E8B4D"/>
-              <ellipse cx="966" cy="482" rx="20" ry="15" fill="#3AAB52"/>
-              <ellipse cx="990" cy="482" rx="22" ry="16" fill="#55D46A" opacity="0.7"/>
-
-              <rect x="1060" y="488" width="6" height="52" fill="#3D2010"/>
-              <ellipse cx="1063" cy="486" rx="32" ry="23" fill="#2E8B4D"/>
-              <ellipse cx="1050" cy="480" rx="22" ry="16" fill="#3AAB52"/>
-              <ellipse cx="1075" cy="480" rx="24" ry="17" fill="#55D46A" opacity="0.65"/>
-
-              <rect x="1150" y="492" width="6" height="48" fill="#3D2010"/>
-              <ellipse cx="1153" cy="490" rx="28" ry="20" fill="#2E8B4D"/>
-              <ellipse cx="1141" cy="484" rx="18" ry="14" fill="#3AAB52"/>
-            </g>
-
-            <!-- Scattered rocks in forest -->
-            <g fill="#6A5548" opacity="0.7">
-              <ellipse cx="270" cy="550" rx="18" ry="10"/>
-              <ellipse cx="295" cy="545" rx="12" ry="7"/>
-              <ellipse cx="750" cy="548" rx="16" ry="9"/>
-              <ellipse cx="775" cy="543" rx="11" ry="6"/>
-              <ellipse cx="900" cy="552" rx="20" ry="11"/>
-              <ellipse cx="920" cy="546" rx="13" ry="7"/>
-            </g>
-
-            <!-- ======= LAYER 8: BEACH / SAND ======= -->
-            <path d="M0,620 C80,608 180,600 300,598 C420,596 530,600 600,602 C670,604 780,606 900,604 C1020,602 1120,600 1205,598 L1205,700 L0,700 Z"
-                  fill="url(#sandG)"/>
-            <!-- Sand texture variation -->
-            <g fill="#C8A465" opacity="0.4">
-              <ellipse cx="200" cy="625" rx="80" ry="6"/>
-              <ellipse cx="600" cy="620" rx="100" ry="5"/>
-              <ellipse cx="1000" cy="623" rx="80" ry="6"/>
-            </g>
-
-            <!-- ======= LAYER 9: RIVER ======= -->
-            <path d="M0,640 C60,628 140,618 240,614 C340,610 440,612 540,614 C600,616 660,618 720,616 C800,614 900,610 1000,614 C1080,618 1140,626 1205,636 L1205,700 L0,700 Z"
-                  fill="url(#riverG)"/>
-            <!-- River surface reflections -->
-            <g opacity="0.45">
-              <!-- Tepuy reflection strip -->
-              <path d="M460,648 C480,644 510,641 540,641 C570,641 600,643 620,647 C600,650 570,652 540,652 C510,652 480,651 460,648 Z"
-                    fill="#FFFFFF" opacity="0.55"/>
-              <!-- Sky reflection -->
-              <ellipse cx="540" cy="660" rx="180" ry="8" fill="#59C8F8" opacity="0.35"/>
-              <!-- waterfall reflection ripple -->
-              <ellipse cx="536" cy="650" rx="40" ry="4" fill="#FFFFFF" opacity="0.5"/>
-            </g>
-            <!-- Animated river waves -->
-            <g stroke="#FFFFFF" stroke-width="1.5" fill="none" opacity="0.25">
-              <path d="M100,650 C130,646 160,650 190,646">
-                <animateTransform attributeName="transform" type="translate" values="0,0;-40,0;0,0" dur="8s" repeatCount="indefinite"/>
-              </path>
-              <path d="M400,655 C440,651 480,655 520,651">
-                <animateTransform attributeName="transform" type="translate" values="-20,0;20,0;-20,0" dur="6s" repeatCount="indefinite"/>
-              </path>
-              <path d="M700,652 C740,648 780,652 820,648">
-                <animateTransform attributeName="transform" type="translate" values="0,0;-30,0;0,0" dur="7s" repeatCount="indefinite"/>
-              </path>
-              <path d="M950,656 C990,652 1030,656 1070,652">
-                <animateTransform attributeName="transform" type="translate" values="20,0;-20,0;20,0" dur="9s" repeatCount="indefinite"/>
-              </path>
-            </g>
-
-            <!-- ======= LAYER 10-11: FOREGROUND VEGETATION ======= -->
-            <!-- Foreground left: large tree + broad leaves + purple plants -->
-            <g>
-              <!-- Big tree trunk left -->
-              <path d="M-10,700 L-10,440 C5,415 20,395 40,378 C55,364 72,356 90,352 C110,348 128,350 145,360 C160,370 172,385 178,402 C184,420 182,442 178,462 L178,700 Z"
-                    fill="#5C3218"/>
-              <!-- Tree bark detail -->
-              <path d="M40,378 C50,365 62,356 76,350" stroke="#3D2010" stroke-width="2" fill="none" opacity="0.5"/>
-              <path d="M60,420 C55,435 52,452 54,470" stroke="#3D2010" stroke-width="2" fill="none" opacity="0.4"/>
-              <!-- Big tree canopy -->
-              <ellipse cx="85"  cy="355" rx="95"  ry="65"  fill="#1D5D34"/>
-              <ellipse cx="60"  cy="340" rx="70"  ry="52"  fill="#2E8B4D"/>
-              <ellipse cx="110" cy="338" rx="78"  ry="55"  fill="#2E8B4D"/>
-              <ellipse cx="85"  cy="320" rx="65"  ry="48"  fill="#3AAB52"/>
-              <ellipse cx="55"  cy="318" rx="50"  ry="38"  fill="#55D46A" opacity="0.75"/>
-              <ellipse cx="115" cy="315" rx="55"  ry="40"  fill="#55D46A" opacity="0.70"/>
-              <ellipse cx="85"  cy="305" rx="45"  ry="34"  fill="#72E47A" opacity="0.55"/>
-              <!-- Light highlights on tree -->
-              <ellipse cx="68"  cy="310" rx="28"  ry="20"  fill="#8AEF88" opacity="0.35"/>
-
-              <!-- Broad tropical leaves (dark green) -->
-              <path d="M140,680 C130,620 120,560 128,500 C138,550 148,610 152,670 Z" fill="#1A4D2E"/>
-              <path d="M148,680 C155,625 158,568 164,510 C170,562 172,622 168,678 Z" fill="#2E8B4D"/>
-              <path d="M168,680 C172,630 178,578 186,525 C190,578 190,630 186,680 Z" fill="#1D5D34"/>
-              <!-- Broad leaf blades -->
-              <path d="M-5,600 C20,570 55,555 70,540 C55,560 25,578 0,608 Z" fill="#2E8B4D"/>
-              <path d="M10,640 C40,605 78,585 96,565 C75,590 42,615 15,648 Z" fill="#1A4D2E"/>
-              <path d="M-10,660 C15,630 42,615 60,600 C42,620 18,640 -8,668 Z" fill="#3AAB52" opacity="0.8"/>
-
-              <!-- PURPLE/MAGENTA PLANTS left (B54AC7 from palette) -->
-              <g>
-                <path d="M48,700 C44,648 40,596 50,548 C55,596 58,650 58,700 Z" fill="#2E8B4D"/>
-                <!-- Magenta leaf blades -->
-                <path d="M30,680 C38,645 55,622 72,608 C56,626 42,650 34,682 Z" fill="#B54AC7"/>
-                <path d="M20,652 C32,622 52,604 68,592 C50,608 34,630 24,658 Z" fill="#C860DC"/>
-                <path d="M50,620 C42,590 38,562 48,535 C52,562 54,592 58,618 Z" fill="#B54AC7"/>
-                <path d="M60,640 C68,610 80,585 94,568 C80,588 66,615 62,642 Z" fill="#D070E8" opacity="0.8"/>
-                <path d="M35,700 C28,665 25,628 34,594 C38,628 40,666 44,700 Z" fill="#A03AB0"/>
-                <!-- Teal accent leaf -->
-                <path d="M88,700 C80,660 72,620 78,580 C84,620 88,660 94,700 Z" fill="#1A8B6A"/>
-                <path d="M96,680 C108,648 122,624 136,608 C120,628 106,654 100,682 Z" fill="#22AA82"/>
-              </g>
-            </g>
-
-            <!-- Foreground right: purple plants + large leaves -->
-            <g>
-              <!-- Right big foreground tree partial -->
-              <path d="M1210,700 L1210,450 C1190,428 1170,410 1150,398 C1132,388 1114,384 1096,386 C1078,388 1062,398 1048,413 C1036,428 1028,446 1024,466 L1020,700 Z"
-                    fill="#5C3218"/>
-              <ellipse cx="1130" cy="370" rx="88" ry="62" fill="#1D5D34"/>
-              <ellipse cx="1108" cy="352" rx="65" ry="50" fill="#2E8B4D"/>
-              <ellipse cx="1150" cy="350" rx="70" ry="52" fill="#2E8B4D"/>
-              <ellipse cx="1130" cy="335" rx="60" ry="45" fill="#3AAB52"/>
-              <ellipse cx="1105" cy="330" rx="48" ry="36" fill="#55D46A" opacity="0.75"/>
-              <ellipse cx="1152" cy="328" rx="52" ry="38" fill="#55D46A" opacity="0.70"/>
-              <ellipse cx="1130" cy="316" rx="44" ry="33" fill="#72E47A" opacity="0.55"/>
-
-              <!-- Broad tropical leaves right -->
-              <path d="M1070,680 C1064,625 1058,568 1064,512 C1070,565 1076,622 1078,678 Z" fill="#1A4D2E"/>
-              <path d="M1050,660 C1052,610 1058,560 1068,510 C1068,562 1064,614 1058,660 Z" fill="#2E8B4D"/>
-              <path d="M1205,600 C1180,572 1148,556 1132,542 C1148,560 1178,580 1205,608 Z" fill="#2E8B4D"/>
-              <path d="M1205,640 C1174,608 1140,588 1122,572 C1140,594 1172,620 1205,650 Z" fill="#1A4D2E"/>
-
-              <!-- PURPLE/MAGENTA PLANTS right -->
-              <g>
-                <path d="M1165,700 C1170,650 1172,598 1162,550 C1158,598 1158,652 1160,700 Z" fill="#2E8B4D"/>
-                <path d="M1185,680 C1174,648 1155,625 1138,610 C1155,628 1172,652 1182,682 Z" fill="#B54AC7"/>
-                <path d="M1195,655 C1181,624 1160,606 1144,592 C1162,608 1180,632 1194,658 Z" fill="#C860DC"/>
-                <path d="M1160,622 C1166,592 1168,562 1158,535 C1155,562 1154,594 1156,620 Z" fill="#B54AC7"/>
-                <path d="M1148,642 C1138,612 1126,585 1112,568 C1126,588 1138,616 1146,644 Z" fill="#D070E8" opacity="0.8"/>
-                <path d="M1178,700 C1184,664 1186,626 1178,592 C1172,626 1170,666 1172,700 Z" fill="#A03AB0"/>
-                <!-- Teal accent -->
-                <path d="M1115,700 C1122,658 1130,616 1124,577 C1118,616 1112,658 1110,700 Z" fill="#1A8B6A"/>
-                <path d="M1105,682 C1094,648 1080,625 1066,608 C1080,628 1096,655 1104,684 Z" fill="#22AA82"/>
-              </g>
-            </g>
-
-            <!-- Foreground rocks scattered -->
-            <g>
-              <ellipse cx="230" cy="660" rx="28" ry="15" fill="#5A4535"/>
-              <ellipse cx="252" cy="655" rx="18" ry="10" fill="#6A5545"/>
-              <ellipse cx="215" cy="658" rx="14" ry="8"  fill="#4A3828"/>
-              <ellipse cx="940" cy="655" rx="25" ry="13" fill="#5A4535"/>
-              <ellipse cx="965" cy="650" rx="17" ry="9"  fill="#6A5545"/>
-              <ellipse cx="925" cy="652" rx="13" ry="7"  fill="#4A3828"/>
-              <!-- mid scattered rocks on sand -->
-              <ellipse cx="440" cy="635" rx="14" ry="7" fill="#5A4535" opacity="0.8"/>
-              <ellipse cx="460" cy="630" rx="10" ry="5" fill="#6A5545" opacity="0.8"/>
-              <ellipse cx="720" cy="633" rx="12" ry="6" fill="#5A4535" opacity="0.8"/>
-              <ellipse cx="742" cy="629" rx="9"  ry="5" fill="#6A5545" opacity="0.8"/>
-            </g>
-
-            <!-- ======= LAYER 12: GLOBAL LIGHTING BLOOM ======= -->
-            <!-- Top-left sun bloom -->
-            <ellipse cx="60" cy="60" rx="220" ry="180" fill="#FFFFFF" filter="url(#fBlur22)" opacity="0.08"/>
-            <!-- Waterfall area bloom -->
-            <ellipse cx="535" cy="300" rx="100" ry="200" fill="#AADCFF" filter="url(#fBlur22)" opacity="0.15"/>
-            <!-- Overall ambient warm tint on ground -->
-            <rect x="0" y="550" width="1200" height="150" fill="#FFECCC" opacity="0.06"/>
-
-            <!-- ======= ANIMATED ELEMENTS ======= -->
-            <!-- Falling leaves / particles from trees -->
-            <g id="leafParticles" opacity="0.6">
-              <ellipse cx="60" cy="450" rx="4" ry="2.5" fill="#55D46A" transform="rotate(-20 60 450)">
-                <animateTransform attributeName="transform" type="translate" values="0,0;8,30;-4,65;10,100" dur="6s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0;0.8;0.8;0" dur="6s" repeatCount="indefinite"/>
-              </ellipse>
-              <ellipse cx="120" cy="420" rx="3.5" ry="2" fill="#3AAB52" transform="rotate(15 120 420)">
-                <animateTransform attributeName="transform" type="translate" values="0,0;-6,25;5,55;-3,90" dur="7s" begin="-2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0;0.7;0.7;0" dur="7s" begin="-2s" repeatCount="indefinite"/>
-              </ellipse>
-              <ellipse cx="1080" cy="440" rx="4" ry="2.5" fill="#55D46A" transform="rotate(10 1080 440)">
-                <animateTransform attributeName="transform" type="translate" values="0,0;-8,28;4,60;-5,95" dur="6.5s" begin="-3s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0;0.75;0.75;0" dur="6.5s" begin="-3s" repeatCount="indefinite"/>
-              </ellipse>
-              <ellipse cx="1140" cy="425" rx="3" ry="2" fill="#3AAB52" transform="rotate(-15 1140 425)">
-                <animateTransform attributeName="transform" type="translate" values="0,0;6,22;-4,50;8,85" dur="7.5s" begin="-1s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0;0.65;0.65;0" dur="7.5s" begin="-1s" repeatCount="indefinite"/>
-              </ellipse>
-            </g>
-
-            <!-- Slow-drifting cloud animation -->
-            <g id="starLayer" opacity="0"></g>
-            <g id="flyLayer"></g>
-            <g id="birdsLayer" fill="none" stroke="#1A4D2E" stroke-width="2" stroke-linecap="round" opacity="0.5">
-              <g id="birdFlock1">
-                <path d="M220,120 C226,112 232,112 238,120"/>
-                <path d="M242,116 C248,108 254,108 260,116"/>
-                <path d="M204,124 C210,116 216,116 222,124"/>
-              </g>
-              <g id="birdFlock2">
-                <path d="M760,90 C766,82 772,82 778,90"/>
-                <path d="M782,86 C788,78 794,78 800,86"/>
-                <path d="M800,92 C806,84 812,84 818,92"/>
-              </g>
-            </g>
-          </svg>
-
+          <canvas id="scenery" style="position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;"></canvas>
           <canvas id="board"></canvas>
 
           <div class="brand"><div class="b1">Code Venezuela</div><div class="b2">DIGITAL</div></div>
@@ -1054,52 +524,666 @@
   "use strict";
 
   /* ============ SCENERY DECOR (stars + fireflies in the SVG) ============ */
-  (function decorate(){
-    var svgns = 'http://www.w3.org/2000/svg';
+  /* ============================================================
+     PARALLAX SCENERY ENGINE — 13 layers, each drawn independently
+     on the #scenery canvas at its own scroll speed.
+     Architecture: similar to a 2D game (Rayman / Ori style).
+     ============================================================ */
+  (function SceneryEngine(){
 
-    // No stars for daytime scene — starLayer opacity is 0 in SVG
-    // Fireflies near ground — warm amber/gold tones for savanna daytime
-    var fl = document.getElementById('flyLayer');
-    if (fl) {
-      var flyColors = ['#f5d060','#ffc840','#ffe080','#f8b838'];
-      for (var j=0;j<10;j++){
-        var gEl = document.createElementNS(svgns,'circle');
-        var fx = 100+Math.random()*1000, fy = 480+Math.random()*180;
-        var fc = flyColors[Math.floor(Math.random()*flyColors.length)];
-        gEl.setAttribute('cx',fx.toFixed(1)); gEl.setAttribute('cy',fy.toFixed(1));
-        gEl.setAttribute('r','2.2'); gEl.setAttribute('fill',fc);
-        gEl.setAttribute('filter','url(#softGlow)');
-        var a1 = document.createElementNS(svgns,'animate');
-        a1.setAttribute('attributeName','cy');
-        a1.setAttribute('values',fy+';'+(fy-18)+';'+fy);
-        a1.setAttribute('dur',(5+Math.random()*5).toFixed(1)+'s');
-        a1.setAttribute('repeatCount','indefinite');
-        var a2 = document.createElementNS(svgns,'animate');
-        a2.setAttribute('attributeName','opacity');
-        a2.setAttribute('values','0.05;0.7;0.05');
-        a2.setAttribute('dur',(4+Math.random()*4).toFixed(1)+'s');
-        a2.setAttribute('repeatCount','indefinite');
-        gEl.appendChild(a1); gEl.appendChild(a2); fl.appendChild(gEl);
+    var sc = document.getElementById('scenery');
+    var sx = sc.getContext('2d');
+    var W = 0, H = 0, DPR = 1;
+    var t = 0, prev = 0;
+
+    // parallax offset (driven by mouse/touch on the board-wrap)
+    var parallaxX = 0, targetX = 0;
+    var boardWrap2 = document.querySelector('.board-wrap');
+    if (boardWrap2){
+      boardWrap2.addEventListener('mousemove', function(e){
+        var r = boardWrap2.getBoundingClientRect();
+        targetX = ((e.clientX - r.left)/r.width - 0.5) * 2; // -1..1
+      });
+      boardWrap2.addEventListener('mouseleave', function(){ targetX = 0; });
+    }
+
+    function resize(){
+      var r = sc.parentElement.getBoundingClientRect();
+      DPR = Math.min(window.devicePixelRatio||1, 2);
+      W = r.width; H = r.height;
+      sc.width  = W * DPR;
+      sc.height = H * DPR;
+      sc.style.width  = W + 'px';
+      sc.style.height = H + 'px';
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    /* ---- helper: draw a rounded cloud puff ---- */
+    function cloudPuff(x,y,rx,ry,alpha){
+      sx.save();
+      sx.globalAlpha = alpha||0.92;
+      sx.shadowColor = '#d0eeff'; sx.shadowBlur = 12;
+      sx.fillStyle = '#ffffff';
+      sx.beginPath(); sx.ellipse(x,y,rx,ry,0,0,Math.PI*2); sx.fill();
+      sx.restore();
+    }
+    /* ---- helper: tree canopy blob cluster ---- */
+    function treeCanopy(x,y,r,c1,c2,c3){
+      sx.fillStyle=c1;
+      sx.beginPath(); sx.ellipse(x,y,r,r*0.72,0,0,Math.PI*2); sx.fill();
+      sx.fillStyle=c2;
+      sx.beginPath(); sx.ellipse(x-r*0.38,y-r*0.18,r*0.62,r*0.55,0,0,Math.PI*2); sx.fill();
+      sx.beginPath(); sx.ellipse(x+r*0.38,y-r*0.14,r*0.64,r*0.56,0,0,Math.PI*2); sx.fill();
+      if(c3){
+        sx.fillStyle=c3;
+        sx.beginPath(); sx.ellipse(x,y-r*0.35,r*0.52,r*0.45,0,0,Math.PI*2); sx.fill();
       }
     }
-
-    // Animated bird flocks flying across the sky
-    var bl = document.getElementById('birdsLayer');
-    if (bl) {
-      var flocks = bl.querySelectorAll('g');
-      var configs = [{dx:320,dy:0,dur:'32s',del:'0s'},{dx:280,dy:10,dur:'40s',del:'12s'}];
-      flocks.forEach(function(flock, fi){
-        var cfg = configs[fi] || configs[0];
-        var am = document.createElementNS(svgns,'animateTransform');
-        am.setAttribute('attributeName','transform');
-        am.setAttribute('type','translate');
-        am.setAttribute('values','0,0; -'+(cfg.dx)+','+cfg.dy);
-        am.setAttribute('dur', cfg.dur);
-        am.setAttribute('begin', cfg.del);
-        am.setAttribute('repeatCount','indefinite');
-        flock.appendChild(am);
-      });
+    /* ---- helper: tropical leaf blade ---- */
+    function leaf(x,y,len,ang,w,col){
+      sx.save();
+      sx.translate(x,y); sx.rotate(ang);
+      sx.fillStyle=col;
+      sx.beginPath();
+      sx.moveTo(0,0);
+      sx.bezierCurveTo(-w*0.5,-len*0.35,-w*0.6,-len*0.65,0,-len);
+      sx.bezierCurveTo( w*0.6,-len*0.65, w*0.5,-len*0.35,0,0);
+      sx.fill();
+      sx.restore();
     }
+
+    /* ===================================================
+       LAYER DRAW FUNCTIONS (in z-order, deepest first)
+       =================================================== */
+
+    /* 01 — SKY */
+    function drawSky(ox){
+      var g = sx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,   '#1a6ec8');
+      g.addColorStop(0.3, '#2D8FE8');
+      g.addColorStop(0.7, '#55B4FF');
+      g.addColorStop(1,   '#C7EBFF');
+      sx.fillStyle = g;
+      sx.fillRect(0,0,W,H);
+      // subtle sun halo top-right
+      var sg = sx.createRadialGradient(W*0.78+ox*0.02,H*0.12,10, W*0.78+ox*0.02,H*0.12,W*0.4);
+      sg.addColorStop(0,'rgba(255,248,200,0.18)');
+      sg.addColorStop(1,'rgba(255,248,200,0)');
+      sx.fillStyle=sg; sx.fillRect(0,0,W,H);
+    }
+
+    /* 02 — CLOUDS (two sub-layers: far + near) */
+    var cloudsFar = [], cloudsNear = [];
+    (function initClouds(){
+      var seed = 42;
+      function rng(){ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; }
+      for(var i=0;i<14;i++){
+        cloudsFar.push({x:rng()*1.4-0.2, y:rng()*0.28, rx:0.06+rng()*0.09, ry:0.025+rng()*0.035, a:0.55+rng()*0.35});
+      }
+      for(var j=0;j<8;j++){
+        cloudsNear.push({x:rng()*1.4-0.2, y:rng()*0.20+0.02, rx:0.09+rng()*0.12, ry:0.035+rng()*0.05, a:0.7+rng()*0.28});
+      }
+    })();
+    function drawClouds(ox, speed){
+      sx.save();
+      // far clouds drift slowly
+      cloudsFar.forEach(function(c){
+        var cx = ((c.x + t*0.00004*speed + ox*0.03) % 1.3 - 0.15)*W;
+        var cy = c.y*H;
+        cloudPuff(cx, cy, c.rx*W, c.ry*H, c.a);
+        cloudPuff(cx-c.rx*W*0.4, cy+c.ry*H*0.25, c.rx*W*0.65, c.ry*H*0.65, c.a*0.7);
+        cloudPuff(cx+c.rx*W*0.45, cy+c.ry*H*0.2, c.rx*W*0.7, c.ry*H*0.62, c.a*0.72);
+      });
+      sx.restore();
+    }
+    function drawCloudsFg(ox){
+      sx.save();
+      cloudsNear.forEach(function(c){
+        var cx = ((c.x + t*0.00007 + ox*0.05) % 1.3 - 0.15)*W;
+        var cy = c.y*H;
+        cloudPuff(cx, cy, c.rx*W, c.ry*H, c.a);
+        cloudPuff(cx-c.rx*W*0.35, cy+c.ry*H*0.3, c.rx*W*0.6, c.ry*H*0.6, c.a*0.65);
+        cloudPuff(cx+c.rx*W*0.4, cy+c.ry*H*0.22, c.rx*W*0.68, c.ry*H*0.58, c.a*0.68);
+      });
+      sx.restore();
+    }
+
+    /* 03 — TEPUY FAR (wide flat-top mesas, left and right) */
+    function drawTepuyFar(ox){
+      var s = ox*0.12;
+      sx.save();
+      // Left far mesa
+      function mesa(x1,y1,x2,y2,col1,col2){
+        var g2 = sx.createLinearGradient(0,y1*H,0,(y2+0.1)*H);
+        g2.addColorStop(0,col1); g2.addColorStop(1,col2);
+        sx.fillStyle=g2;
+        sx.beginPath();
+        sx.moveTo((x1-0.05)*W, H*0.78);
+        sx.lineTo((x1+0.02)*W+s, y1*H);
+        sx.lineTo((x1+0.14)*W+s, (y1-0.04)*H);
+        sx.lineTo((x2-0.14)*W+s, (y1-0.04)*H);
+        sx.lineTo((x2-0.02)*W+s, y1*H);
+        sx.lineTo((x2+0.05)*W, H*0.78);
+        sx.closePath(); sx.fill();
+        // top flat
+        sx.fillStyle='#9A7A6A';
+        sx.beginPath();
+        sx.ellipse(((x1+x2)/2)*W+s, (y1-0.04)*H, (x2-x1)*W*0.5, H*0.018,0,0,Math.PI*2);
+        sx.fill();
+        // vegetation on top
+        sx.fillStyle='#2E8B4D';
+        for(var k=0;k<6;k++){
+          var tx2 = (x1+0.06+(x2-x1-0.12)*k/5)*W+s;
+          sx.beginPath(); sx.ellipse(tx2,(y1-0.052)*H,W*0.022,H*0.018,0,0,Math.PI*2); sx.fill();
+        }
+      }
+      mesa(-0.05,0.42, 0.42,0.52, '#8A6A5A','#5B453D');
+      mesa(0.58,0.44,  1.08,0.54, '#8A6A5A','#5B453D');
+      sx.restore();
+    }
+
+    /* 04 — TEPUY MAIN (Auyantepui: terracotta cliff face with Angel Falls) */
+    function drawTepuyMain(ox){
+      var s = ox*0.18;
+      sx.save();
+      var cx = W*(0.5+s/W*0.5);
+      var tw = W*0.38, th = H*0.52;
+      var tx = cx-tw/2, ty = H*0.18;
+
+      // shadow behind main cliff
+      sx.fillStyle='#5B453D';
+      sx.beginPath();
+      sx.moveTo(tx-W*0.02, ty+th);
+      sx.lineTo(tx+W*0.02, ty+H*0.05);
+      sx.lineTo(cx-tw*0.1, ty);
+      sx.lineTo(cx+tw*0.1, ty);
+      sx.lineTo(tx+tw-W*0.02, ty+H*0.05);
+      sx.lineTo(tx+tw+W*0.02, ty+th);
+      sx.closePath(); sx.fill();
+
+      // main face gradient
+      var g3 = sx.createLinearGradient(tx,ty, tx+tw,ty+th);
+      g3.addColorStop(0,'#C8845A');
+      g3.addColorStop(0.25,'#B87348');
+      g3.addColorStop(0.55,'#8E6855');
+      g3.addColorStop(1,'#5B453D');
+      sx.fillStyle=g3;
+      sx.beginPath();
+      sx.moveTo(tx, ty+th);
+      sx.lineTo(tx+tw*0.05, ty+th*0.55);
+      sx.bezierCurveTo(tx+tw*0.08,ty+th*0.25, tx+tw*0.1,ty+th*0.08, tx+tw*0.25,ty+th*0.02);
+      sx.lineTo(cx, ty);
+      sx.lineTo(tx+tw*0.75, ty+th*0.02);
+      sx.bezierCurveTo(tx+tw*0.9,ty+th*0.08, tx+tw*0.92,ty+th*0.25, tx+tw*0.95,ty+th*0.55);
+      sx.lineTo(tx+tw, ty+th);
+      sx.closePath(); sx.fill();
+
+      // left lit face
+      var gL = sx.createLinearGradient(tx,ty, tx+tw*0.28,ty+th);
+      gL.addColorStop(0,'rgba(216,149,106,0.65)');
+      gL.addColorStop(1,'rgba(180,115,72,0)');
+      sx.fillStyle=gL;
+      sx.beginPath();
+      sx.moveTo(tx, ty+th);
+      sx.lineTo(tx+tw*0.05, ty+th*0.55);
+      sx.bezierCurveTo(tx+tw*0.08,ty+th*0.25, tx+tw*0.1,ty+th*0.08, tx+tw*0.25,ty+th*0.02);
+      sx.lineTo(tx+tw*0.3, ty+th*0.05);
+      sx.lineTo(tx+tw*0.18, ty+th*0.28);
+      sx.lineTo(tx+tw*0.12, ty+th*0.6);
+      sx.closePath(); sx.fill();
+
+      // vertical rock striations
+      sx.strokeStyle='rgba(90,68,61,0.4)'; sx.lineWidth=Math.max(1,W*0.0015);
+      for(var k2=0;k2<9;k2++){
+        var frac = 0.12+k2*0.088;
+        var lx = tx+tw*frac;
+        sx.beginPath(); sx.moveTo(lx, ty+th*0.05); sx.lineTo(lx+W*0.004, ty+th); sx.stroke();
+      }
+
+      // summit vegetation
+      sx.fillStyle='#3AAB52';
+      for(var k3=0;k3<10;k3++){
+        var vx = tx+tw*0.08+tw*0.84*(k3/9);
+        var vs = W*0.018+Math.sin(k3*2.3)*W*0.006;
+        sx.beginPath(); sx.ellipse(vx, ty-H*0.005, vs, H*0.018,0,0,Math.PI*2); sx.fill();
+      }
+      sx.fillStyle='#55D46A';
+      for(var k4=0;k4<6;k4++){
+        var vx2 = tx+tw*0.14+tw*0.72*(k4/5);
+        sx.beginPath(); sx.ellipse(vx2, ty-H*0.012, W*0.012, H*0.013,0,0,Math.PI*2); sx.fill();
+      }
+      // dark outline on summit edge
+      sx.strokeStyle='rgba(25,70,95,0.5)'; sx.lineWidth=2;
+      sx.beginPath();
+      sx.moveTo(tx+tw*0.25,ty+th*0.02); sx.lineTo(cx,ty); sx.lineTo(tx+tw*0.75,ty+th*0.02);
+      sx.stroke();
+
+      sx.restore();
+    }
+
+    /* 05 — WATERFALL (Salto Ángel, animated) */
+    function drawWaterfall(ox){
+      var s = ox*0.18;
+      sx.save();
+      var cx2 = W*(0.5+s/W*0.3);
+      var wTop = H*0.18+H*0.015;
+      var wBot = H*0.72;
+      var wWid = W*0.018;
+      // phase for animation
+      var ph = t*0.0025;
+
+      // outer soft glow
+      sx.save();
+      sx.globalAlpha=0.45;
+      var wg = sx.createLinearGradient(cx2-wWid*4, wTop, cx2+wWid*4, wBot);
+      wg.addColorStop(0,'rgba(180,230,255,0)');
+      wg.addColorStop(0.3,'rgba(180,230,255,0.5)');
+      wg.addColorStop(0.7,'rgba(180,230,255,0.5)');
+      wg.addColorStop(1,'rgba(180,230,255,0)');
+      sx.fillStyle=wg;
+      sx.beginPath();
+      sx.ellipse(cx2, (wTop+wBot)/2, wWid*4, (wBot-wTop)/2, 0,0,Math.PI*2);
+      sx.fill();
+      sx.restore();
+
+      // main stream: multiple semi-transparent strips with animated offset
+      for(var s2=0;s2<4;s2++){
+        var so = (s2*0.25 + ph) % 1;
+        var alpha = 0.18+s2*0.12;
+        var wf = sx.createLinearGradient(cx2,wTop+so*80,cx2,wBot+so*80);
+        wf.addColorStop(0,'rgba(255,255,255,0)');
+        wf.addColorStop(0.2,'rgba(220,245,255,'+alpha+')');
+        wf.addColorStop(0.8,'rgba(180,230,255,'+(alpha*0.7)+')');
+        wf.addColorStop(1,'rgba(89,200,248,0)');
+        sx.fillStyle=wf;
+        sx.beginPath();
+        sx.moveTo(cx2-wWid*(1+s2*0.15), wTop);
+        sx.lineTo(cx2+wWid*(1+s2*0.15), wTop);
+        // slight wave as it falls
+        sx.bezierCurveTo(
+          cx2+wWid*(1.2+s2*0.1)+Math.sin(ph*6.3+s2)*wWid*0.5, wTop+(wBot-wTop)*0.4,
+          cx2+wWid*(0.9+s2*0.1)+Math.sin(ph*6.3+s2+1)*wWid*0.6, wTop+(wBot-wTop)*0.7,
+          cx2+wWid*(1.4+s2*0.2), wBot
+        );
+        sx.lineTo(cx2-wWid*(1.4+s2*0.2), wBot);
+        sx.bezierCurveTo(
+          cx2-wWid*(0.9+s2*0.1)+Math.sin(ph*6.3+s2+2)*wWid*0.6, wTop+(wBot-wTop)*0.7,
+          cx2-wWid*(1.2+s2*0.1)+Math.sin(ph*6.3+s2+3)*wWid*0.5, wTop+(wBot-wTop)*0.4,
+          cx2-wWid*(1+s2*0.15), wTop
+        );
+        sx.closePath(); sx.fill();
+      }
+      // bright white core
+      sx.save();
+      sx.globalAlpha=0.82;
+      var wc = sx.createLinearGradient(0,wTop,0,wBot);
+      wc.addColorStop(0,'rgba(255,255,255,0.9)');
+      wc.addColorStop(0.5,'rgba(220,245,255,0.6)');
+      wc.addColorStop(1,'rgba(140,220,248,0.3)');
+      sx.fillStyle=wc;
+      sx.beginPath(); sx.rect(cx2-wWid*0.5, wTop, wWid, wBot-wTop); sx.fill();
+      sx.restore();
+      sx.restore();
+    }
+
+    /* 06 — MIST (animated drifting bands) */
+    function drawMist(ox){
+      sx.save();
+      var my = H*0.6;
+      var ph2 = t*0.00018;
+      // base mist band at waterfall pool
+      var mg = sx.createRadialGradient(W*0.5,my+H*0.08,10, W*0.5,my+H*0.08,W*0.55);
+      mg.addColorStop(0,'rgba(216,245,255,0.72)');
+      mg.addColorStop(0.45,'rgba(216,245,255,0.35)');
+      mg.addColorStop(1,'rgba(216,245,255,0)');
+      sx.fillStyle=mg; sx.fillRect(0,0,W,H);
+      // animated drifting wisps
+      for(var i2=0;i2<4;i2++){
+        var wx = W*(0.15+i2*0.22 + Math.sin(ph2+i2*1.4)*0.06 + ox*0.06);
+        var wy = my + Math.sin(ph2*1.3+i2)*H*0.025;
+        sx.globalAlpha = 0.18+Math.sin(ph2*0.7+i2*0.9)*0.12;
+        sx.fillStyle='#D8F5FF';
+        sx.beginPath(); sx.ellipse(wx,wy, W*0.18+Math.sin(ph2+i2)*W*0.04, H*0.04,0,0,Math.PI*2); sx.fill();
+      }
+      sx.globalAlpha=1;
+      sx.restore();
+    }
+
+    /* 07 — FOREST BACK */
+    function drawForestBack(ox){
+      var s = ox*0.30;
+      sx.save();
+      var fy = H*0.58;
+      // silhouette fill
+      var g4 = sx.createLinearGradient(0,fy,0,H*0.82);
+      g4.addColorStop(0,'#55B06A'); g4.addColorStop(1,'#1D5D34');
+      sx.fillStyle=g4;
+      sx.beginPath(); sx.moveTo(-10,H);
+      sx.lineTo(-10, fy+H*0.04);
+      for(var x3=0; x3<=W+40; x3+=W/28){
+        var noise = Math.sin(x3*0.022+s*0.01)*H*0.04 + Math.sin(x3*0.041+s*0.007)*H*0.025;
+        sx.lineTo(x3+s, fy+noise);
+      }
+      sx.lineTo(W+10, H); sx.closePath(); sx.fill();
+      // tree canopy blobs on top
+      var cols3 = ['#2E8B4D','#3AAB52','#55D46A'];
+      for(var i3=0;i3<18;i3++){
+        var bx = (i3/(17))*W*1.05 - W*0.02 + s;
+        var by = fy + Math.sin(i3*2.1+s*0.02)*H*0.038 - H*0.01;
+        var br = W*0.028+Math.sin(i3*1.7)*W*0.01;
+        treeCanopy(bx,by,br, cols3[i3%3], cols3[(i3+1)%3], null);
+      }
+      sx.restore();
+    }
+
+    /* 08 — FOREST FRONT (visible trunks + large canopies) */
+    function drawForestFront(ox){
+      var s = ox*0.45;
+      sx.save();
+      var fy2 = H*0.62;
+      // base fill
+      var g5 = sx.createLinearGradient(0,fy2,0,H*0.86);
+      g5.addColorStop(0,'#3AAB52'); g5.addColorStop(1,'#1A4D2E');
+      sx.fillStyle=g5;
+      sx.beginPath(); sx.moveTo(-10,H);
+      sx.lineTo(-10, fy2);
+      for(var x4=0; x4<=W+40; x4+=W/22){
+        var noise2 = Math.sin(x4*0.025+t*0.0004+s*0.015)*H*0.05 + Math.cos(x4*0.044)*H*0.022;
+        sx.lineTo(x4+s, fy2+noise2);
+      }
+      sx.lineTo(W+10, H); sx.closePath(); sx.fill();
+
+      // individual trees with trunks
+      var treePositions = [0.06,0.14,0.22,0.30,0.40,0.52,0.62,0.70,0.80,0.88,0.96];
+      treePositions.forEach(function(frac, ti){
+        var tx3 = frac*W + s;
+        var tr = W*(0.028+Math.sin(ti*1.9)*0.008);
+        var ty3 = fy2 - tr*0.6 + Math.sin(ti*2.4)*H*0.03;
+        // trunk
+        sx.fillStyle='#3D2010';
+        sx.beginPath(); sx.rect(tx3-tr*0.14, ty3, tr*0.28, tr*1.2); sx.fill();
+        // canopy
+        treeCanopy(tx3, ty3-tr*0.3, tr, '#1D5D34','#2E8B4D','#55D46A');
+        // wind sway on top leaves
+        var sway = Math.sin(t*0.0008+ti*0.8)*W*0.004;
+        sx.fillStyle='#65D46A';
+        sx.beginPath(); sx.ellipse(tx3+sway, ty3-tr*0.72, tr*0.48, tr*0.36,0,0,Math.PI*2); sx.fill();
+      });
+
+      // palm tree at centre
+      var px = W*0.52+s;
+      var py = fy2-H*0.12;
+      sx.fillStyle='#5A3520';
+      sx.save(); sx.translate(px,py+H*0.12);
+      sx.beginPath(); sx.rect(-W*0.004,0,W*0.008,-H*0.14); sx.fill();
+      // palm fronds
+      var frondCols = ['#1D5D34','#2E8B4D','#3AAB52'];
+      for(var fi2=0;fi2<6;fi2++){
+        var fa = fi2*Math.PI/3 + Math.sin(t*0.001)*0.12;
+        sx.strokeStyle=frondCols[fi2%3]; sx.lineWidth=W*0.004;
+        sx.beginPath();
+        sx.moveTo(0,-H*0.14);
+        sx.bezierCurveTo(Math.cos(fa)*W*0.08,-H*0.16+Math.sin(fa)*H*0.04, Math.cos(fa)*W*0.14,-H*0.12+Math.sin(fa)*H*0.08, Math.cos(fa)*W*0.16,-H*0.08+Math.sin(fa)*H*0.1);
+        sx.stroke();
+      }
+      sx.restore();
+
+      sx.restore();
+    }
+
+    /* 09 — BEACH (sandy strip) */
+    function drawBeach(ox){
+      var s = ox*0.60;
+      sx.save();
+      var by = H*0.80;
+      var g6 = sx.createLinearGradient(0,by,0,by+H*0.06);
+      g6.addColorStop(0,'#DDB97E'); g6.addColorStop(1,'#C8A465');
+      sx.fillStyle=g6;
+      sx.beginPath();
+      sx.moveTo(-10, H);
+      sx.lineTo(-10, by+Math.sin(s*0.008)*H*0.008);
+      for(var x5=0;x5<=W+20;x5+=W/16){
+        var sn = Math.sin(x5*0.015+s*0.02)*H*0.012+Math.cos(x5*0.032)*H*0.006;
+        sx.lineTo(x5+s*0.1, by+sn);
+      }
+      sx.lineTo(W+10,H); sx.closePath(); sx.fill();
+      // scattered rocks
+      var rockPos = [0.18,0.32,0.48,0.62,0.75,0.88];
+      rockPos.forEach(function(fr){
+        var rx = fr*W+s*0.08;
+        var ry2 = by+H*0.022;
+        sx.fillStyle='#6A5548';
+        sx.beginPath(); sx.ellipse(rx,ry2,W*0.016,H*0.01,0,0,Math.PI*2); sx.fill();
+        sx.fillStyle='#7A6558';
+        sx.beginPath(); sx.ellipse(rx+W*0.009,ry2-H*0.004,W*0.01,H*0.007,0,0,Math.PI*2); sx.fill();
+      });
+      sx.restore();
+    }
+
+    /* 10 — RIVER (animated waves + reflections) */
+    function drawRiver(ox){
+      var s = ox*0.60;
+      sx.save();
+      var ry3 = H*0.83;
+      // water fill
+      var g7 = sx.createLinearGradient(0,ry3,0,H);
+      g7.addColorStop(0,'#59C8F8'); g7.addColorStop(0.4,'#1E92D4'); g7.addColorStop(1,'#0E6FB8');
+      sx.fillStyle=g7;
+      sx.beginPath();
+      sx.moveTo(-10,H); sx.lineTo(-10,ry3);
+      for(var x6=0;x6<=W+20;x6+=W/18){
+        var sn2 = Math.sin(x6*0.018-t*0.003+s*0.015)*H*0.008+Math.cos(x6*0.035+t*0.002)*H*0.004;
+        sx.lineTo(x6, ry3+sn2);
+      }
+      sx.lineTo(W+10,H); sx.closePath(); sx.fill();
+
+      // tepuy & waterfall reflection
+      sx.save();
+      sx.globalAlpha=0.28;
+      sx.fillStyle='#B8845A';
+      sx.beginPath(); sx.ellipse(W*0.5+s*0.2, ry3+H*0.05, W*0.14, H*0.028, 0,0,Math.PI*2); sx.fill();
+      sx.fillStyle='#FFFFFF';
+      sx.beginPath(); sx.ellipse(W*0.5+s*0.15, ry3+H*0.032, W*0.022, H*0.022, 0,0,Math.PI*2); sx.fill();
+      sx.restore();
+
+      // animated wave lines
+      sx.strokeStyle='rgba(255,255,255,0.28)'; sx.lineWidth=Math.max(1,H*0.003);
+      var ph3 = t*0.003;
+      for(var wi=0;wi<5;wi++){
+        var wyo = ry3+H*(0.02+wi*0.032);
+        sx.save();
+        sx.globalAlpha=0.25-wi*0.04;
+        sx.beginPath();
+        for(var x7=0;x7<=W;x7+=4){
+          var wy2 = wyo + Math.sin(x7*0.022-ph3+wi*1.1)*H*0.006;
+          if(x7===0) sx.moveTo(x7,wy2); else sx.lineTo(x7,wy2);
+        }
+        sx.stroke();
+        sx.restore();
+      }
+      // sparkle glints
+      sx.fillStyle='rgba(255,255,255,0.75)';
+      var gph = t*0.005;
+      [[0.2,0.05],[0.38,0.09],[0.55,0.04],[0.7,0.08],[0.85,0.05]].forEach(function(gp){
+        var ga = (Math.sin(gph+gp[0]*6)+1)/2;
+        if(ga>0.7){
+          sx.save(); sx.globalAlpha=(ga-0.7)*3.3;
+          sx.beginPath(); sx.arc(gp[0]*W, ry3+gp[1]*H, W*0.003,0,Math.PI*2); sx.fill();
+          sx.restore();
+        }
+      });
+      sx.restore();
+    }
+
+    /* 11 — FOREGROUND LEFT (big tree + purple plants) */
+    function drawFgLeft(ox, windT){
+      var s = ox*0.80;
+      sx.save();
+      sx.translate(s, 0);
+
+      // Big tree trunk
+      sx.fillStyle='#5C3218';
+      sx.beginPath();
+      sx.moveTo(-W*0.01, H);
+      sx.bezierCurveTo(-W*0.01,H*0.75, W*0.01,H*0.6, W*0.04,H*0.52);
+      sx.bezierCurveTo(W*0.065,H*0.46, W*0.075,H*0.42, W*0.07,H*0.38);
+      sx.bezierCurveTo(W*0.075,H*0.35, W*0.09,H*0.34, W*0.1,H*0.35);
+      sx.lineTo(W*0.1, H);
+      sx.closePath(); sx.fill();
+      // bark detail
+      sx.strokeStyle='rgba(40,20,10,0.35)'; sx.lineWidth=2;
+      sx.beginPath(); sx.moveTo(W*0.04,H*0.52); sx.lineTo(W*0.02,H*0.65); sx.stroke();
+      sx.beginPath(); sx.moveTo(W*0.06,H*0.44); sx.lineTo(W*0.08,H*0.58); sx.stroke();
+      // Big canopy with wind sway
+      var sway2 = Math.sin(windT)*W*0.006;
+      treeCanopy(W*0.07+sway2, H*0.28, W*0.12, '#1D5D34','#2E8B4D','#3AAB52');
+      sx.fillStyle='#55D46A';
+      sx.beginPath(); sx.ellipse(W*0.04+sway2*0.6,H*0.24, W*0.075,H*0.06,0,0,Math.PI*2); sx.fill();
+      sx.fillStyle='rgba(100,220,100,0.3)';
+      sx.beginPath(); sx.ellipse(W*0.09+sway2*0.8,H*0.22, W*0.06,H*0.05,-0.2,0,Math.PI*2); sx.fill();
+
+      // Broad tropical leaves
+      var leafCols = ['#1A4D2E','#2E8B4D','#1D5D34'];
+      [[0.05,0.72,-0.4,0.18],[0.08,0.78,-0.6,0.14],[0.12,0.68,-0.3,0.16],
+       [0.02,0.82,-0.5,0.20],[0.14,0.74,-0.25,0.15]].forEach(function(lp,li){
+        var lsway = Math.sin(windT*0.8+li*0.6)*0.04;
+        leaf(lp[0]*W, lp[1]*H, lp[3]*H, lp[2]+lsway, W*0.04, leafCols[li%3]);
+      });
+
+      // Purple magenta plants
+      var purpleLeafs = [
+        [0.0,0.88, -0.6, 0.2,'#B54AC7'],
+        [0.05,0.84, -0.4, 0.22,'#C860DC'],
+        [0.12,0.82, -0.5, 0.18,'#A03AB0'],
+        [0.02,0.76, -0.7, 0.16,'#B54AC7'],
+        [0.08,0.78, -0.35, 0.20,'#D070E8'],
+      ];
+      purpleLeafs.forEach(function(p3,pi){
+        var psway = Math.sin(windT*1.1+pi*0.9)*0.05;
+        leaf(p3[0]*W, p3[1]*H, p3[4]*H, p3[2]+psway, W*0.035, p3[4]);
+        // highlight
+        sx.globalAlpha=0.35;
+        leaf(p3[0]*W+W*0.008, p3[1]*H, p3[4]*H*0.6, p3[2]+psway-0.08, W*0.015, '#E880F4');
+        sx.globalAlpha=1;
+      });
+
+      // Teal accent leaves
+      [[0.14,0.9,-0.3,0.18,'#1A8B6A'],[0.18,0.84,-0.2,0.16,'#22AA82']].forEach(function(tl,tli){
+        var tsway = Math.sin(windT*0.9+tli*1.2)*0.04;
+        leaf(tl[0]*W, tl[1]*H, tl[4]*H, tl[2]+tsway, W*0.032, tl[4]);
+      });
+
+      sx.restore();
+    }
+
+    /* 12 — FOREGROUND RIGHT (mirrored, purple plants + partial tree) */
+    function drawFgRight(ox, windT){
+      var s = ox*0.80;
+      sx.save();
+      sx.translate(W+s, 0);
+      sx.scale(-1,1); // mirror left assets
+
+      // Partial tree right
+      sx.fillStyle='#5C3218';
+      sx.beginPath();
+      sx.moveTo(-W*0.01, H);
+      sx.bezierCurveTo(-W*0.01,H*0.75, W*0.01,H*0.6, W*0.04,H*0.52);
+      sx.bezierCurveTo(W*0.065,H*0.46, W*0.075,H*0.42, W*0.07,H*0.38);
+      sx.lineTo(W*0.08, H);
+      sx.closePath(); sx.fill();
+      var sway3 = Math.sin(windT+1.2)*W*0.006;
+      treeCanopy(W*0.065+sway3, H*0.30, W*0.1, '#1D5D34','#2E8B4D','#3AAB52');
+      sx.fillStyle='#55D46A';
+      sx.beginPath(); sx.ellipse(W*0.03+sway3*0.6,H*0.26, W*0.065,H*0.055,0,0,Math.PI*2); sx.fill();
+
+      // Leaves
+      [[0.05,0.72,-0.4,0.18],[0.08,0.78,-0.55,0.15],[0.12,0.7,-0.3,0.17]].forEach(function(lp2,li2){
+        var lsway2 = Math.sin(windT*0.85+li2*0.7+2)*0.04;
+        leaf(lp2[0]*W, lp2[1]*H, lp2[3]*H, lp2[2]+lsway2, W*0.038, '#2E8B4D');
+      });
+      // Purple plants right
+      [[0.01,0.88,-0.5,0.2,'#B54AC7'],[0.06,0.82,-0.4,0.22,'#C860DC'],[0.1,0.86,-0.6,0.18,'#A03AB0'],[0.03,0.76,-0.35,0.19,'#D070E8']].forEach(function(pp,ppi){
+        var ppsway = Math.sin(windT*1.1+ppi*0.8+1.5)*0.05;
+        leaf(pp[0]*W, pp[1]*H, pp[4]*H, pp[2]+ppsway, W*0.034, pp[4]);
+      });
+      // Teal
+      [[0.14,0.88,-0.28,0.17,'#22AA82']].forEach(function(tl2){
+        leaf(tl2[0]*W, tl2[1]*H, tl2[4]*H, tl2[2]+Math.sin(windT)*0.04, W*0.03, tl2[4]);
+      });
+      sx.restore();
+    }
+
+    /* 13 — PARTICLES (falling leaves + floating motes) */
+    var motes = [];
+    (function initMotes(){
+      for(var i4=0;i4<22;i4++){
+        motes.push({
+          x: Math.random(), y: Math.random()*0.6+0.1,
+          vx: (Math.random()-0.5)*0.00008,
+          vy: 0.00005+Math.random()*0.00012,
+          rot: Math.random()*Math.PI*2,
+          rotV: (Math.random()-0.5)*0.04,
+          r: 0.003+Math.random()*0.005,
+          col: ['#55D46A','#3AAB52','#B54AC7','#72E47A','#D070E8'][Math.floor(Math.random()*5)],
+          alpha: 0.4+Math.random()*0.5
+        });
+      }
+    })();
+    function drawParticles(ox){
+      var s = ox*0.5;
+      sx.save();
+      motes.forEach(function(m){
+        m.x += m.vx + Math.sin(t*0.0004+m.y*10)*0.00005;
+        m.y += m.vy;
+        m.rot += m.rotV;
+        if(m.y>1.05){ m.y=0.05; m.x=Math.random(); }
+        sx.save();
+        sx.globalAlpha=m.alpha*(0.7+Math.sin(t*0.002+m.x*8)*0.3);
+        sx.translate(m.x*W+s, m.y*H);
+        sx.rotate(m.rot);
+        sx.fillStyle=m.col;
+        sx.beginPath(); sx.ellipse(0,0,m.r*W,m.r*W*0.4, 0,0,Math.PI*2); sx.fill();
+        sx.restore();
+      });
+      sx.restore();
+    }
+
+    /* ===== MAIN RENDER LOOP ===== */
+    function renderScene(now){
+      if(!prev) prev=now;
+      var dt = Math.min(50, now-prev); prev=now; t += dt;
+
+      // smooth parallax
+      parallaxX += (targetX-parallaxX)*0.04;
+      var ox = parallaxX * W * 0.04; // max ~4% of width shift
+
+      var windT = t*0.0008;
+
+      sx.save();
+      sx.scale(DPR, DPR);
+      sx.clearRect(0,0,W,H);
+
+      drawSky(ox);                    // z:0
+      drawClouds(ox, 1);              // z:1 far
+      drawClouds(ox, 2);              // z:1 near (faster)
+      drawTepuyFar(ox);               // z:2 (parallax 0.12)
+      drawTepuyMain(ox);              // z:3 (parallax 0.18)
+      drawWaterfall(ox);              // z:4 (parallax 0.18, animated)
+      drawCloudsFg(ox);               // cloud puffs in front of tepuys
+      drawMist(ox);                   // z:5 (animated)
+      drawForestBack(ox);             // z:6 (parallax 0.30)
+      drawForestFront(ox);            // z:7 (parallax 0.45)
+      drawBeach(ox);                  // z:8 (parallax 0.60)
+      drawRiver(ox);                  // z:9 (parallax 0.60, animated)
+      drawFgLeft(ox, windT);          // z:10 (parallax 0.80, wind)
+      drawFgRight(ox, windT);         // z:11 (parallax 0.80, wind)
+      drawParticles(ox);              // z:12 (floating motes)
+
+      sx.restore();
+      requestAnimationFrame(renderScene);
+    }
+    requestAnimationFrame(renderScene);
   })();
 
   /* ============ AUDIO ============ */
